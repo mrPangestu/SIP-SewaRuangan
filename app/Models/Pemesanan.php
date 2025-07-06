@@ -19,7 +19,16 @@ class Pemesanan extends Model
         'tanggal_selesai' => 'datetime',
     ];
 
-
+    public function getStatusColorAttribute()
+    {
+        return [
+            'menunggu_pembayaran' => 'warning',
+            'dibayar' => 'primary',
+            'dikonfirmasi' => 'info',
+            'selesai' => 'success',
+            'dibatalkan' => 'danger',
+        ][$this->status] ?? 'secondary';
+    }
     
 
     protected $fillable = [
@@ -37,6 +46,7 @@ class Pemesanan extends Model
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
     }
+    
 
     public function gedung()
     {

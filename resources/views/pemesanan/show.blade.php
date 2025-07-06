@@ -1,4 +1,4 @@
-@extends('app')
+@extends('layouts.app')
 
 @section('title', 'Detail Pemesanan')
 
@@ -29,6 +29,10 @@
                     <div>
                         <p class="text-gray-600">Tanggal Pemesanan</p>
                         <p class="font-medium">{{ $pemesanan->created_at->format('d F Y H:i') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Nama Penyewa</p>
+                        <p class="font-medium">{{ $pemesanan->user->name }}</p>
                     </div>
                     <div>
                         <p class="text-gray-600">Nama Acara</p>

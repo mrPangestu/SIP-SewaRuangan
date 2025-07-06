@@ -10,6 +10,8 @@ use Illuminate\Http\Request;
 class GedungController extends Controller
 {
     //
+
+    
     public function show($id_gedung)
 {
     $gedung = Gedung::with('kategori')->findOrFail($id_gedung);
@@ -49,6 +51,7 @@ public function getDateBookings($id_gedung, $date)
     
     return response()->json($formattedBookings);
 }
+
 
 
 

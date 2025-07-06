@@ -23,8 +23,5 @@ class KalenderKetersediaan extends Model
         'keterangan',
     ];
 
-    public function gedung()
-    {
-        return $this->belongsTo(Gedung::class, 'id_gedung', 'id_gedung');
-    }
+
 }

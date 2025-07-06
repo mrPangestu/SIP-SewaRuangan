@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('keterangan')->nullable();
             $table->timestamps();
 
-            $table->foreign('id_gedung')->references('id_gedung')->on('gedung')->onDelete('cascade');
+            
             $table->unique(['id_gedung', 'tanggal']);
         });
     }

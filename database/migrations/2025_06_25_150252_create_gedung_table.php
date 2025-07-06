@@ -13,15 +13,19 @@ return new class extends Migration
             $table->uuid('id_kategori');
             $table->string('nama', 30);
             $table->text('lokasi');
-            $table->enum('daerah', ['kota bandung utara', 'kota bandung barat',
-             'kota bandung selatan', 'kota bandung timur', 'kabupaten bandung barat',
-             'kabupaten bandung', 'kota cimahi', 'kabupaten sumedang']);
-            $table->integer('kapasitas'); // hapus 4
+            $table->enum('daerah', [
+                'kota bandung utara', 'kota bandung barat',
+                'kota bandung selatan', 'kota bandung timur',
+                'kabupaten bandung barat', 'kabupaten bandung',
+                'kota cimahi', 'kabupaten sumedang'
+            ]);
+            $table->integer('kapasitas');
             $table->text('fasilitas');
-            $table->double('harga', 10, 2); // misalnya max 9999999.99
-            $table->text('deskripsi')->nullable(); // text → string kalau mau panjang fix 100
+            $table->double('harga', 10, 2);
+            $table->text('deskripsi')->nullable();
+            $table->string('image')->nullable(); // <= tambahkan kolom image (nullable biar opsional)
             $table->timestamps();
-        
+
             $table->foreign('id_kategori')->references('id_kategori')->on('kategori_gedung');
         });
     }

@@ -11,7 +11,7 @@ class AuthController extends Controller
     // Menampilkan form login
     public function showLoginForm()
     {
-        return view('login');
+        return view('auth.login');
     }
 
     // Proses login
@@ -25,14 +25,12 @@ class AuthController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             
-            // Redirect berdasarkan role
-            if (auth()->user()->isAdmin()) {
-                $redirect = session('url.intended') ?? '/';
-                return redirect()->to($redirect);
+            // Redirect khusus untuk admin
+            if (auth()->user()->role === 'admin') {
+                return redirect()->route('admin.dashboard');
             }
             
-            $redirect = session('url.intended') ?? '/';
-            return redirect()->to($redirect);
+            return redirect()->intended('/');
         }
 
         return back()->withErrors([
@@ -43,7 +41,7 @@ class AuthController extends Controller
     // Menampilkan form registrasi
     public function showRegisterForm()
     {
-        return view('register');
+        return view('auth.register');
     }
 
     // Proses registrasi

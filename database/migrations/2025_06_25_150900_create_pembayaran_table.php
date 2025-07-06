@@ -12,7 +12,7 @@ return new class extends Migration
             $table->uuid('id_pembayaran')->primary();
             $table->uuid('id_pemesanan');
             $table->string('metode_pembayaran');
-            $table->decimal('jumlah', 12, 2);
+            $table->decimal('jumlah', 13, 2);
             $table->enum('status', ['pending', 'completed', 'failed', 'expired']);
             $table->datetime('waktu_pembayaran')->nullable();
             $table->string('referensi_pembayaran');

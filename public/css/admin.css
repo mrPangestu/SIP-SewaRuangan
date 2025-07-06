@@ -1,0 +1,172 @@
+:root {
+    --primary-color: #4e73df;
+    --secondary-color: #858796;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+    --light-color: #000000;
+    --dark-color: #5a5c69;
+}
+
+body {
+    background-color: #f8f9fc;
+}
+
+/* Sidebar */
+#sidebar-wrapper {
+    min-height: 100vh;
+    margin-left: -15rem;
+    transition: margin 0.25s ease-out;
+    width: 15rem;
+    position: fixed;
+    z-index: 1030;
+}
+
+#sidebar-wrapper .sidebar-heading {
+    padding: 0.875rem 1.25rem;
+    font-size: 1.2rem;
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+#sidebar-wrapper .list-group {
+    width: 15rem;
+}
+
+#sidebar-wrapper .list-group-item {
+    border: none;
+    padding: 1rem 1.25rem;
+    border-left: 3px solid transparent;
+}
+
+#sidebar-wrapper .list-group-item.active {
+    background-color: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-left: 3px solid var(--primary-color);
+}
+
+#sidebar-wrapper .list-group-item:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+#sidebar-wrapper .sidebar-footer {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Page Content */
+#page-content-wrapper {
+    min-width: 100vw;
+    margin-left: 0;
+    transition: margin 0.25s ease-out;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+    margin-left: 0;
+}
+
+@media (min-width: 768px) {
+    #sidebar-wrapper {
+        margin-left: 0;
+    }
+    
+    #page-content-wrapper {
+        min-width: 0;
+        width: 100%;
+        margin-left: 15rem;
+    }
+    
+    #wrapper.toggled #sidebar-wrapper {
+        margin-left: -15rem;
+    }
+}
+
+/* Navbar */
+.navbar {
+    padding: 0.5rem 1rem;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+/* Cards */
+.card {
+    border: none;
+    box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.card-header {
+    background-color: #f8f9fc;
+    border-bottom: 1px solid #e3e6f0;
+    padding: 1rem 1.35rem;
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+.badge-primary {
+    background-color: var(--primary-color);
+}
+
+.badge-success {
+    background-color: var(--success-color);
+}
+
+.badge-info {
+    background-color: var(--info-color);
+}
+
+.badge-warning {
+    background-color: var(--warning-color);
+}
+
+.badge-danger {
+    background-color: var(--danger-color);
+}
+
+/* Tables */
+.table {
+    margin-bottom: 0;
+}
+
+.table th {
+    border-top: none;
+    font-weight: 600;
+    color: var(--dark-color);
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+/* Buttons */
+.btn-icon {
+    width: 32px;
+    height: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
+/* Utilities */
+.text-xs {
+    font-size: 0.7rem;
+}
+
+.avatar {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    color: white;
+    font-weight: 600;
+}
+
+.avatar-sm {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+}

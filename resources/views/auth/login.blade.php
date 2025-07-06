@@ -1,9 +1,15 @@
-@extends('app')
-
-@section('title', 'Login')
-
-@section('content')
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <title>Login</title>
+</head>
+<body>
+    <div class="min-h-screen flex items-center justify-center bg-gray-100">
     <div class="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <div class="text-center mb-8">
             <h1 class="text-2xl font-bold text-gray-800">Login ke Akun Anda</h1>
@@ -64,4 +70,5 @@
         </div>
     </div>
 </div>
-@endsection
+</body>
+</html>

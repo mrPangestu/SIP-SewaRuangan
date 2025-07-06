@@ -1,4 +1,4 @@
-@extends('app')
+@extends('layouts.app')
 
 @section('title', $gedung->nama)
 
@@ -327,7 +327,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 <span class="text-gray-600">${booking.waktu_mulai} - ${booking.waktu_selesai}</span>
                 <span class="text-gray-500">${booking.durasi}</span>
             </div>
-            ${booking.penyewa ? `<p class="text-sm text-gray-500 mt-1">Penyewa: ${booking.penyewa}</p>` : ''}
         `;
         return bookingEl;
     }

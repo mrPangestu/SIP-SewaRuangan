@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Gedung extends Model
 {
@@ -12,34 +13,32 @@ class Gedung extends Model
     protected $primaryKey = 'id_gedung';
     public $incrementing = false;
     protected $keyType = 'string';
-
-    // Add this line to specify the correct table name
     protected $table = 'gedung';
 
     protected $fillable = [
-        'id_gedung',
-        'id_kategori',
-        'nama',
-        'lokasi',
-        'daerah',
-        'kapasitas',
-        'fasilitas',
-        'harga',
-        'deskripsi',
+        'id_gedung', 'id_kategori', 'nama', 'lokasi', 'daerah',
+        'kapasitas', 'fasilitas', 'harga', 'deskripsi'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($model) {
+            if (empty($model->id_gedung)) {
+                $model->id_gedung = (string) Str::uuid();
+            }
+        });
+    }
 
     public function kategori()
     {
         return $this->belongsTo(KategoriGedung::class, 'id_kategori', 'id_kategori');
     }
 
-    public function kalenderKetersediaan()
-    {
-        return $this->hasMany(KalenderKetersediaan::class, 'id_gedung', 'id_gedung');
-    }
 
     public function pemesanan()
     {
-        return $this->hasMany(Pemesanan::class, 'gedung_id', 'id_gedung');
+        return $this->hasMany(Pemesanan::class, 'id_gedung', 'id_gedung');
     }
 }
