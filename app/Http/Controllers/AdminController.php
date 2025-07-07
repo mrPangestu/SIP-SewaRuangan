@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Models\KategoriGedung;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
 
@@ -102,11 +103,18 @@ class AdminController extends Controller
 
     public function pemesananConfirm($id_pemesanan)
     {
-        $pemesanan = Pemesanan::findOrFail($id_pemesanan);
-        $pemesanan->update(['status' => 'dikonfirmasi']);
 
-        return redirect()->back()
-            ->with('success', 'Pemesanan berhasil dikonfirmasi');
+        $pemesanan = Pemesanan::where('status', 'dibayar')
+        ->whereDoesntHave('pembayaran', function($query) {
+            $query->where('status', '!=', 'completed');
+        })
+        ->lockForUpdate()
+        ->findOrFail($id_pemesanan);
+
+    $pemesanan->update(['status' => 'dikonfirmasi']);
+
+    return redirect()->back()
+        ->with('success', 'Pemesanan berhasil dikonfirmasi');
     }
 
     public function pemesananDetail($id_pemesanan)
@@ -195,24 +203,57 @@ class AdminController extends Controller
         return view('admin.gedung.index', compact('gedungs', 'kategories', 'daerahOptions'));
     }
 
-    public function gedungStore(Request $request)
-    {
-        $validated = $request->validate([
-            'id_kategori' => 'required|exists:kategori_gedung,id_kategori',
-            'nama' => 'required|string|max:30',
-            'lokasi' => 'required|string',
-            'daerah' => 'required|in:kota bandung utara,kota bandung barat,kota bandung selatan,kota bandung timur,kabupaten bandung barat,kabupaten bandung,kota cimahi,kabupaten sumedang',
-            'kapasitas' => 'required|integer',
-            'fasilitas' => 'required|string',
-            'harga' => 'required|numeric|min:0|max:9999999.99',
-            'deskripsi' => 'nullable|string'
+public function gedungStore(Request $request)
+{
+    // Basic validation (keep your existing validation rules)
+    $validated = $request->validate([
+        'id_kategori' => 'required|exists:kategori_gedung,id_kategori',
+        'nama' => 'required|string|max:30',
+        'lokasi' => 'required|string',
+        'daerah' => 'required|in:kota bandung utara,kota bandung barat,kota bandung selatan,kota bandung timur,kabupaten bandung barat,kabupaten bandung,kota cimahi,kabupaten sumedang',
+        'kapasitas' => 'required|integer|min:1',
+        'fasilitas' => 'required|string',
+        'harga' => 'required|numeric|min:0|max:9999999.99',
+        'deskripsi' => 'nullable|string',
+        'images.*' => 'nullable|image|mimes:jpeg,png,jpg'
+    ]);
+
+    // Handle image upload (simplified version)
+    try {
+        // Buat direktori jika belum ada
+        if (!Storage::disk('public')->exists('gedung_images')) {
+            Storage::disk('public')->makeDirectory('gedung_images');
+        }
+
+        $imagePaths = [];
+        foreach ($request->file('images') as $image) {
+            $filename = 'gedung_'.time().'_'.Str::random(5).'.'.$image->extension();
+            
+            // Simpan gambar
+            $path = $image->storeAs('gedung_images', $filename, 'public');
+            $imagePaths[] = $filename;
+        }
+
+        Gedung::create([
+            'id_gedung' => Str::uuid(),
+            'id_kategori' => $request->id_kategori,
+            'nama' => $request->nama,
+            'lokasi' => $request->lokasi,
+            'daerah' => $request->daerah,
+            'kapasitas' => $request->kapasitas,
+            'fasilitas' => $request->fasilitas,
+            'harga' => $request->harga,
+            'deskripsi' => $request->deskripsi,
+            'image' => implode(',', $imagePaths),
         ]);
 
-        Gedung::create($validated);
-
         return redirect()->route('admin.gedung.index')
-            ->with('success', 'Gedung berhasil ditambahkan');
+               ->with('success', 'Gedung berhasil ditambahkan');
+
+    } catch (\Exception $e) {
+        return back()->with('error', 'Gagal upload gambar: '.$e->getMessage());
     }
+}
 
     public function gedungUpdate(Request $request, $id_gedung)
     {

@@ -164,7 +164,7 @@
                 <h5 class="modal-title">Tambah Gedung Baru</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form action="{{ route('admin.gedung.store') }}" method="POST">
+            <form action="{{ route('admin.gedung.store') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-body">
                     <div class="row">
@@ -217,6 +217,12 @@
                         <label for="deskripsi" class="form-label">Deskripsi</label>
                         <textarea class="form-control" id="deskripsi" name="deskripsi" rows="3"></textarea>
                     </div>
+                    <div class="mb-3">
+                        <label for="images" class="form-label">Gambar Gedung (Maksimal 4)</label>
+                        <input type="file" class="form-control" id="images" name="images[]" multiple accept="image/*" max="4">
+                        <small class="text-muted">Pilih 1-4 gambar (format: jpg, jpeg, png)</small>
+                        <div id="image-preview" class="d-flex flex-wrap gap-2 mt-2"></div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
@@ -268,5 +274,35 @@
             this.value = parseFloat(this.value).toFixed(2);
         });
     });
+    document.getElementById('images').addEventListener('change', function(e) {
+    const preview = document.getElementById('image-preview');
+    preview.innerHTML = '';
+    
+    if (this.files.length > 4) {
+        alert('Maksimal 4 gambar yang dapat diupload');
+        this.value = '';
+        return;
+    }
+    
+    Array.from(this.files).forEach(file => {
+        if (!file.type.match('image.*')) {
+            alert('Hanya file gambar yang diperbolehkan');
+            this.value = '';
+            preview.innerHTML = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            img.style.maxWidth = '100px';
+            img.style.maxHeight = '100px';
+            img.className = 'img-thumbnail';
+            preview.appendChild(img);
+        }
+        reader.readAsDataURL(file);
+    });
+});
 </script>
 @endsection

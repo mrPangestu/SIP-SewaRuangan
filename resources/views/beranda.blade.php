@@ -2,284 +2,214 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8" />
-    <title>HallRent</title>
+    <title>Venuefy</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Animasi modal */
-        #filterModal {
-            transition: opacity 0.3s ease;
-        }
-        
-        #filterModal > div {
-            transform: translateY(-20px);
-            transition: transform 0.3s ease;
-        }
-        
-        #filterModal:not(.hidden) {
-            display: flex;
-            opacity: 1;
-        }
-        
-        #filterModal:not(.hidden) > div {
-            transform: translateY(0);
-        }
-        
-        /* Scroll untuk daftar gedung */
-        .gedung-list {
-            max-height: 650px;
-            overflow-y: auto;
-            background: rgb(221, 221, 221);
-        }
-        
-        /* Style untuk select dan input */
-        select, input[type="number"] {
-            transition: border-color 0.3s;
-        }
-        
-        select:focus, input[type="number"]:focus {
-            border-color: #9333ea;
-            outline: none;
-        }
-        
-    </style>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="./css/style-beranda.css">
+
 </head>
-<body class="bg-gray-100" style="height: 100%">
-    <div class="flex min-h-screen">
+<body>
+    <div class="d-flex">
         <!-- Sidebar -->
-        <aside class="w-64 bg-white shadow-md p-4">
-            <h1 class="text-xl font-bold text-purple-800 mb-8">HallRent!</h1>
-            <nav class="space-y-4">
-                <a href="{{ route('beranda') }}" class="block text-gray-700 hover:text-purple-600">Beranda</a>
-                <a href="{{ route('pemesanan.index') }}" class="block text-purple-700 hover:underline mt-4">Pemesanan</a>
+        <aside class="sidebar">
+            <div class="sidebar-brand">
+                <i class="fas fa-building"></i>
+                <span>Venuefy</span>
+            </div>
+            <nav class="sidebar-nav">
+                <div class="nav-item">
+                    <a href="{{ route('beranda') }}" class="nav-link active">
+                        <i class="fas fa-home"></i>
+                        <span>Beranda</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a href="{{ route('pemesanan.index') }}" class="nav-link">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Pemesanan</span>
+                    </a>
+                </div>
                 @auth
-                    <form action="{{ route('logout') }}" method="POST" class="mt-4">
+                <div class="nav-item">
+                    <form action="{{ route('logout') }}" method="POST" class="nav-link">
                         @csrf
-                        <button type="submit" class="w-full text-left text-red-600 hover:text-red-800 px-2 py-1 rounded">
-                            Logout
-                        </button>
+                        <i class="fas fa-sign-out-alt"></i>
+                        <button type="submit" class="bg-transparent border-0 text-white p-0">Logout</button>
                     </form>
+                </div>
                 @else
-                    <a href="{{ route('login') }}" class="block text-purple-700 hover:underline mt-4">Login</a>
+                <div class="nav-item">
+                    <a href="{{ route('login') }}" class="nav-link">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
+                    </a>
+                </div>
                 @endauth
             </nav>
         </aside>
 
-        <!-- Main -->
-        <div class="container py-4">
-            <h2 class="text-2xl font-bold mb-4"></h2>
-        
-            <!-- Search bar -->
-            
-            
-            <div class="flex justify-center mb-4 " >
-                <form id="searchForm" method="GET" action="{{ route('beranda') }}" style="width: 600px">
-                    <input type="text" name="search" placeholder="Cari gedung..." 
-                           class="w-full px-4 py-2 border rounded-lg pl-10 focus:outline-none focus:ring-2 focus:ring-purple-500"
-                           value="{{ request('search') }}">
-                    <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                </form>
-            </div>
-        
-            <!-- Filter & Kalender -->
-            <div class="flex justify-center gap-4 mb-6">
-                <button id="filterBtn" class="px-4 py-2 border rounded-lg bg-white shadow hover:bg-gray-100">Filter</button>
-                <button id="calendarBtn" class="px-4 py-2 border rounded-lg bg-white shadow hover:bg-gray-100">Kalender</button>
-            </div>
-        
-            <!-- List Gedung -->
-            <div class="m-5 py-5 gedung-list">
-                <div class="space-y-6 mx-5">
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="container-fluid">
+                <!-- Search Bar -->
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <form id="searchForm" method="GET" action="{{ route('beranda') }}">
+                        <input type="text" name="search" placeholder="Cari gedung..." 
+                               class="search-input" value="{{ request('search') }}">
+                    </form>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button id="filterBtn" class="action-btn">
+                        <i class="fas fa-sliders-h"></i>
+                        <span>Filter</span>
+                    </button>
+                    <button id="calendarBtn" class="action-btn">
+                        <i class="far fa-calendar-alt"></i>
+                        <span>Kalender</span>
+                    </button>
+                </div>
+                
+                <!-- Building List -->
+                <div class="building-list p-4" style="background: rgb(233, 233, 233); border-radius: 20px;">
                     @forelse ($gedungs as $gedung)
-                    <div class="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer" 
-                         onclick="detail('{{ $gedung->id_gedung }}')">
-                         
-                        <div class="p-6">
-                            
-                            <div class="flex flex-col md:flex-row gap-4"> 
-                                <div class="flex-shrink-0">
-                                    <img src="./img/img1.jpg" class="rounded" alt="..." width="300">
-                                </div>
-                                <div class="flex flex-col justify-between flex-grow">
-                                    <div>
-                                        <div class="flex justify-between items-start">
-                                            <div>
-                                                <h2 class="text-2xl font-semibold text-gray-800 mb-2">{{ $gedung->nama }}</h2>
-                                                <span class="inline-block px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full mb-2">
-                                                    {{ $gedung->kategori->nama_kategori }}
-                                                </span>
-                                            </div>
-                                            <span class="text-sm text-gray-500">{{ ucfirst($gedung->daerah) }}</span>
-                                        </div>
-                                        
-                                        <p class="text-gray-600 mb-4 line-clamp-2">{{ $gedung->deskripsi }}</p>
-                                        
-                                        <div class="flex items-center text-gray-700 mb-2">
-                                            <i class="fas fa-map-marker-alt mr-2"></i>
-                                            <span>{{ $gedung->lokasi }}</span>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="flex justify-between items-center mt-2">
-                                        <div class="text-lg font-semibold text-blue-600">
-                                            Rp {{ number_format($gedung->harga, 0, ',', '.') }} / Jam
-                                        </div>
-                                        <div class="text-sm text-gray-500">
-                                            <i class="fas fa-users mr-1"></i> {{ $gedung->kapasitas }} orang
-                                        </div>
-                                    </div>
+                    <div class="building-card fade-in slide-up" onclick="detail('{{ $gedung->id_gedung }}')">
+                        <div class="row g-0">
+                            <div class="col-md-4">
+                               <div class="image-container">
+                                    @if($gedung->first_image)
+                                        <img src="{{ asset('storage/gedung_images/' . $gedung->first_image) }}" 
+                                            class="building-image" 
+                                            alt="{{ $gedung->nama }}"
+                                            onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'image-fallback\'><i class=\'fas fa-image\'></i></div>'">
+                                    @else
+                                        <div class='image-fallback'><i class='fas fa-image'></i></div>
+                                    @endif
                                 </div>
                             </div>
-                                                    
-                            
-                            <div class="mt-4">
-                                <h3 class="font-medium text-gray-700 mb-2">Fasilitas :</h3>
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach(explode(',', $gedung->fasilitas) as $item)
-                                    <span class="px-3 py-1 bg-gray-100 rounded-full text-sm text-gray-700">
-                                        {{ trim($item) }}
-                                    </span>
-                                    @endforeach
+                            <div class="col-md-8">
+                                <div class="building-content">
+                                    <div class="building-header">
+                                        <div>
+                                            <h3 class="building-title">{{ $gedung->nama }}</h3>
+                                            <div class="building-location">
+                                                <i class="fas fa-map-marker-alt"></i>
+                                                <span>{{ $gedung->lokasi }} • {{ ucfirst($gedung->daerah) }}</span>
+                                            </div>
+                                        </div>
+                                        <span class="building-category">{{ $gedung->kategori->nama_kategori }}</span>
+                                    </div>
+                                    
+                                    <p class="building-description">{{ $gedung->deskripsi }}</p>
+                                    
+                                    <div class="building-features">
+                                        @foreach(explode(',', $gedung->fasilitas) as $item)
+                                        <span class="feature-tag">{{ trim($item) }}</span>
+                                        @endforeach
+                                    </div>
+                                    
+                                    <div class="building-footer">
+                                        <div class="building-price">
+                                            Rp {{ number_format($gedung->harga, 0, ',', '.') }} / Jam
+                                        </div>
+                                        <div class="building-capacity">
+                                            <i class="fas fa-users"></i>
+                                            <span>{{ $gedung->kapasitas }} orang</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                     @empty
-                    <div class="bg-white rounded-lg shadow-md p-6 text-center">
-                        <p class="text-gray-600">Tidak ada gedung yang sesuai dengan filter Anda.</p>
-                        <a href="{{ route('beranda') }}" class="text-purple-600 hover:underline mt-2 inline-block">
-                            Reset filter
-                        </a>
+                    <div class="empty-state">
+                        <i class="far fa-building"></i>
+                        <h3>Tidak Ada Gedung Ditemukan</h3>
+                        <p>Maaf, tidak ada gedung yang sesuai dengan kriteria pencarian Anda.</p>
+                        <a href="{{ route('beranda') }}" class="btn btn-primary">Reset Filter</a>
                     </div>
                     @endforelse
                 </div>
             </div>
-        </div>
-        
-        <!-- Filter Modal -->
-        <div id="filterModal" class="fixed inset-0 bg-black bg-opacity-30 hidden items-center justify-center z-50">
-            <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-md">
-                <h3 class="text-lg font-bold mb-4">Filter Ruangan</h3>
-                <form id="filterForm" method="GET" action="{{ route('beranda') }}">
-                    <div class="space-y-4">
-                        <!-- Filter Daerah -->
-                        <div>
-                            <label class="block text-gray-700 mb-2">Daerah</label>
-                            <select name="daerah" class="w-full px-3 py-2 border rounded-lg">
-                                <option value="">Semua Daerah</option>
-                                <option value="kota bandung utara">Kota Bandung Utara</option>
-                                <option value="kota bandung barat">Kota Bandung Barat</option>
-                                <option value="kota bandung selatan">Kota Bandung Selatan</option>
-                                <option value="kota bandung timur">Kota Bandung Timur</option>
-                                <option value="kabupaten bandung barat">Kab. Bandung Barat</option>
-                                <option value="kabupaten bandung">Kab. Bandung</option>
-                                <option value="kota cimahi">Kota Cimahi</option>
-                                <option value="kabupaten sumedang">Kab. Sumedang</option>
-                            </select>
-                        </div>
-                        
-                        <!-- Filter Kategori -->
-                        <div>
-                            <label class="block text-gray-700 mb-2">Kategori</label>
-                            <select name="kategori" class="w-full px-3 py-2 border rounded-lg">
-                                <option value="">Semua Kategori</option>
-                                @foreach($kategories as $kategori)
-                                    <option value="{{ $kategori->id_kategori }}">{{ $kategori->nama_kategori }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        
-                        <!-- Filter Kapasitas -->
-                        <div>
-                            <label class="block text-gray-700 mb-2">Kapasitas Minimum</label>
-                            <input type="number" name="kapasitas" min="1" 
-                                class="w-full px-3 py-2 border rounded-lg" 
-                                placeholder="Masukkan jumlah orang">
-                        </div>
+        </main>
+    </div>
+    
+    <!-- Filter Modal -->
+    <div id="filterModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Filter Ruangan</h3>
+                <button class="modal-close" id="closeFilterModal">&times;</button>
+            </div>
+            <form id="filterForm" method="GET" action="{{ route('beranda') }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Daerah</label>
+                        <select name="daerah" class="form-control">
+                            <option value="">Semua Daerah</option>
+                            <option value="kota bandung utara">Kota Bandung Utara</option>
+                            <option value="kota bandung barat">Kota Bandung Barat</option>
+                            <option value="kota bandung selatan">Kota Bandung Selatan</option>
+                            <option value="kota bandung timur">Kota Bandung Timur</option>
+                            <option value="kabupaten bandung barat">Kab. Bandung Barat</option>
+                            <option value="kabupaten bandung">Kab. Bandung</option>
+                            <option value="kota cimahi">Kota Cimahi</option>
+                            <option value="kabupaten sumedang">Kab. Sumedang</option>
+                        </select>
                     </div>
                     
-                    <div class="flex justify-end gap-2 mt-6">
-                        <button type="button" id="resetFilter" 
-                            class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">
-                            Reset
-                        </button>
-                        <button type="submit" 
-                            class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
-                            Terapkan
-                        </button>
+                    <div class="mb-3">
+                        <label class="form-label">Kategori</label>
+                        <select name="kategori" class="form-control">
+                            <option value="">Semua Kategori</option>
+                            @foreach($kategories as $kategori)
+                                <option value="{{ $kategori->id_kategori }}">{{ $kategori->nama_kategori }}</option>
+                            @endforeach
+                        </select>
                     </div>
-                </form>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Kapasitas Minimum</label>
+                        <input type="number" name="kapasitas" min="1" class="form-control" 
+                               placeholder="Masukkan jumlah orang">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="resetFilter" class="btn btn-secondary">Reset</button>
+                    <button type="submit" class="btn btn-primary">Terapkan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Calendar Modal (Placeholder) -->
+    <div id="calendarModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Kalender Ketersediaan</h3>
+                <button class="modal-close" id="closeCalendarModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Fitur kalender akan menampilkan ketersediaan gedung berdasarkan tanggal.</p>
+                <!-- Calendar implementation would go here -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="closeCalendarBtn">Tutup</button>
             </div>
         </div>
-    </div>    
-         
+    </div>
 
-<script>
-    function detail(id) {
-        window.location.href = '/gedung/' + id;
-    }
-
-
-    document.addEventListener('DOMContentLoaded', function() {
-    // Toggle modal filter
-    const filterBtn = document.getElementById('filterBtn');
-    const filterModal = document.getElementById('filterModal');
-    const closeFilterModal = document.getElementById('closeFilterModal');
-    
-    filterBtn.addEventListener('click', () => {
-        filterModal.classList.remove('hidden');
-    });
-    
-    closeFilterModal.addEventListener('click', () => {
-        filterModal.classList.add('hidden');
-    });
-    
-    // Reset filter
-    document.getElementById('resetFilter').addEventListener('click', function() {
-        document.getElementById('filterForm').reset();
-    });
-    
-    // Set nilai filter dari URL
-    const urlParams = new URLSearchParams(window.location.search);
-    document.querySelector('select[name="daerah"]').value = urlParams.get('daerah') || '';
-    document.querySelector('select[name="kategori"]').value = urlParams.get('kategori') || '';
-    document.querySelector('input[name="kapasitas"]').value = urlParams.get('kapasitas') || '';
-});
-    // Kalender modal control
-    const calendarBtn = document.getElementById('calendarBtn');
-    const calendarModal = document.getElementById('calendarModal');
-    const closeCalendarModal = document.getElementById('closeCalendarModal');
-
-    calendarBtn.addEventListener('click', () => {
-        calendarModal.classList.remove('hidden');
-        calendarModal.classList.add('flex');
-    });
-
-    closeCalendarModal.addEventListener('click', () => {
-        calendarModal.classList.add('hidden');
-        calendarModal.classList.remove('flex');
-    });
-
-
-    // Di bagian script yang sama dengan filter
-document.getElementById('searchForm').addEventListener('submit', function(e) {
-    // Submit form secara normal
-});
-
-// Untuk auto-search (opsional)
-const searchInput = document.querySelector('input[name="search"]');
-let searchTimer;
-
-searchInput.addEventListener('input', function() {
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(() => {
-        document.getElementById('searchForm').submit();
-    }, 500); // Delay 500ms setelah user berhenti mengetik
-});
-
-</script>
-    
+    <!-- Bootstrap JS Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="./js/script-beranda.js"></script>
 </body>
 </html>
-
-

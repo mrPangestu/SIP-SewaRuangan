@@ -25,11 +25,26 @@ class GedungSeeder extends Seeder
         $venues = [];
         $daerahKeys = array_keys($this->bandungDistricts);
 
+        // Create array of image numbers from 1 to 28
+        $allImages = range(1, 28);
+        shuffle($allImages); // Shuffle to get random order
+
         for ($i = 0; $i < 20; $i++) {
             $categoryIndex = $i % 5;
             $daerahIndex = $i % count($daerahKeys);
             $daerah = $daerahKeys[$daerahIndex];
             $district = $this->bandungDistricts[$daerah][array_rand($this->bandungDistricts[$daerah])];
+            
+            // Select 3 unique random images for each building
+            $selectedImages = array_slice($allImages, ($i * 4) % 30, 4);
+            // If we're near the end, wrap around
+            if (count($selectedImages) < 4) {
+                $selectedImages = array_merge($selectedImages, array_slice($allImages, 0, 4 - count($selectedImages)));
+            }
+            // Format as "1.jpeg,2.jpeg,3.jpeg"
+            $imageString = implode(',', array_map(function($num) {
+                return $num . '.jpeg';
+            }, $selectedImages));
             
             $venues[] = [
                 'id_gedung' => Str::uuid(),
@@ -41,6 +56,7 @@ class GedungSeeder extends Seeder
                 'fasilitas' => $this->generateFacilities($categoryIndex),
                 'harga' => $this->generatePrice($categoryIndex),
                 'deskripsi' => $this->generateDescription($categoryIndex, $district, $daerah),
+                'image' => $imageString,
                 'created_at' => now(),
                 'updated_at' => now(),
             ];

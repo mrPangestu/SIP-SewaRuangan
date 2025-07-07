@@ -17,7 +17,7 @@ class Gedung extends Model
 
     protected $fillable = [
         'id_gedung', 'id_kategori', 'nama', 'lokasi', 'daerah',
-        'kapasitas', 'fasilitas', 'harga', 'deskripsi'
+        'kapasitas', 'fasilitas', 'harga', 'deskripsi', 'image'
     ];
 
     protected static function boot()
@@ -29,6 +29,12 @@ class Gedung extends Model
                 $model->id_gedung = (string) Str::uuid();
             }
         });
+    }
+
+    public function getFirstImageAttribute()
+    {
+        $images = explode(',', $this->image);
+        return $images[0] ?? null; // Mengambil gambar pertama
     }
 
     public function kategori()

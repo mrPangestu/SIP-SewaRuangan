@@ -1,6 +1,6 @@
 <div class="bg-dark border-right" id="sidebar-wrapper">
     <div class="sidebar-heading text-white py-4">
-        <h4 class="mb-0"><i class="fas fa-building me-2"></i> GedungKu</h4>
+        <h4 class="mb-0"><i class="fas fa-building me-2"></i>Venuefy</h4>
     </div>
     <div class="list-group list-group-flush">
         <a href="{{ route('admin.dashboard') }}" class="list-group-item list-group-item-action bg-dark text-white">
@@ -18,8 +18,5 @@
         <a href="{{ route('admin.users.index') }}" class="list-group-item list-group-item-action bg-dark text-white">
             <i class="fas fa-users me-2"></i> Pengguna
         </a>
-    </div>
-    <div class="sidebar-footer mt-auto p-3 text-center text-white">
-        <small>v1.0.0</small>
     </div>
 </div>

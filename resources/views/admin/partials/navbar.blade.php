@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+<nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom mb-4">
     <div class="container-fluid">
         <button class="btn btn-sm btn-outline-dark me-2" id="menu-toggle">
             <i class="fas fa-bars"></i>

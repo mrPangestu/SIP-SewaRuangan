@@ -12,20 +12,41 @@ use Carbon\Carbon;
 class PemesananController extends Controller
 {
 
-    public function index(Request $request)
-    {
-        $query = Pemesanan::with(['gedung', 'pembayaran'])
-            ->where('user_id', auth()->id())
-            ->orderBy('created_at', 'desc');
-    
-        if ($request->has('status') && $request->status !== 'all') {
-            $query->where('status', $request->status);
-        }
-    
-        $pemesanans = $query->paginate(10);
-    
-        return view('pemesanan.index', compact('pemesanans'));
+public function index(Request $request)
+{
+    $query = Pemesanan::with(['gedung', 'pembayaran'])
+        ->where('user_id', auth()->id())
+        ->orderBy('created_at', 'desc');
+
+    if ($request->has('status') && $request->status !== 'all') {
+        $query->where('status', $request->status);
     }
+
+    $pemesanans = $query->paginate(10);
+
+    // Get counts for each status
+    $statusCounts = Pemesanan::where('user_id', auth()->id())
+        ->selectRaw('status, count(*) as count')
+        ->groupBy('status')
+        ->pluck('count', 'status')
+        ->toArray();
+
+    // Define all possible statuses and initialize counts to 0
+    $allStatuses = [
+        'menunggu_pembayaran',
+        'dibayar',
+        'dikonfirmasi',
+        'selesai',
+        'dibatalkan'
+    ];
+
+    $statusCounts = array_merge(
+        array_fill_keys($allStatuses, 0),
+        $statusCounts
+    );
+
+    return view('pemesanan.index', compact('pemesanans', 'statusCounts'));
+}
 
     public function store(Request $request)
 {
@@ -149,8 +170,6 @@ private function checkJadwalBentrok($id_gedung, $tanggalMulai, $tanggalSelesai)
 
 
 
-
-
     public function show($id_pemesanan)
     {
         $pemesanan = Pemesanan::with(['gedung', 'user'])
@@ -177,8 +196,6 @@ private function checkJadwalBentrok($id_gedung, $tanggalMulai, $tanggalSelesai)
     return redirect()->route('pemesanan.show', $pemesanan->id_pemesanan)
         ->with('success', 'Pemesanan berhasil dibatalkan');
 }
-
-
 
 
 public function checkAvailability(Request $request, $id)
@@ -218,4 +235,5 @@ public function checkAvailability(Request $request, $id)
             : 'Gedung sudah dipesan pada waktu tersebut atau kurang dari 2 jam sebelum/sesudahnya'
     ]);
 }
+
 }

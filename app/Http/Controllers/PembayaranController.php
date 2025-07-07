@@ -6,6 +6,7 @@ use App\Models\Pemesanan;
 use App\Models\Pembayaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 
 class PembayaranController extends Controller
 {
@@ -30,8 +31,8 @@ class PembayaranController extends Controller
     public function process(Request $request)
     {
         $request->validate([
-            'id_pemesanan' => 'required|exists:pemesanan,id_pemesanan',
-            'metode_pembayaran' => 'required|in:bank_transfer,ewallet,qris',
+            'id_pemesanan' => 'required|',
+            'metode_pembayaran' => 'required|',
         ]);
 
         $pemesanan = Pemesanan::where('user_id', auth()->id())
@@ -47,6 +48,8 @@ class PembayaranController extends Controller
             'referensi_pembayaran' => 'INV-' . time() . '-' . Str::random(4),
         ]);
 
+        
+
         // Redirect ke payment gateway
         return $this->handlePaymentGateway($pembayaran);
     }
@@ -56,17 +59,17 @@ class PembayaranController extends Controller
         return [
             'bank_transfer' => [
                 'nama' => 'Transfer Bank',
-                'logo' => asset('images/bank.png'),
+                'logo' => asset('img/transferbank.png'),
                 'deskripsi' => 'BCA, BRI, Mandiri, dll'
             ],
             'ewallet' => [
                 'nama' => 'E-Wallet',
-                'logo' => asset('images/ewallet.png'),
+                'logo' => asset('img/e-wallet.png'),
                 'deskripsi' => 'OVO, Gopay, DANA, dll'
             ],
             'qris' => [
                 'nama' => 'QRIS',
-                'logo' => asset('images/qris.png'),
+                'logo' => asset('img/qris.png'),
                 'deskripsi' => 'Scan QR Code'
             ]
         ];
@@ -78,16 +81,22 @@ class PembayaranController extends Controller
         // Ini contoh sederhana untuk simulasi
         
         // Simulasi pembayaran berhasil
+        DB::transaction(function () use ($pembayaran) {
+        $pemesanan = Pemesanan::where('id_pemesanan', $pembayaran->id_pemesanan)
+            ->where('status', 'menunggu_pembayaran')
+            ->lockForUpdate()
+            ->firstOrFail();
+
         $pembayaran->update([
             'status' => 'completed',
             'waktu_pembayaran' => now()
         ]);
         
-        $pembayaran->pemesanan->update(['status' => 'dibayar']);
+        $pemesanan->update(['status' => 'dibayar']);
+    });
 
-        return redirect()->route('pembayaran.success', $pembayaran->id_pembayaran);
-    }
-    
+    return redirect()->route('pembayaran.success', $pembayaran->id_pembayaran);
+}
     public function success($id_pembayaran)
     {
         $pembayaran = Pembayaran::with(['pemesanan', 'pemesanan.gedung'])

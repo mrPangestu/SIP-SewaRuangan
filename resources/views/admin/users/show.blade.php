@@ -7,12 +7,8 @@
     <div class="col-lg-4">
         <div class="card shadow mb-4">
             <div class="card-body text-center">
-                <img src="#" alt="profil" width="100">
-                <div class="avatar avatar-xxl mb-3">
-                    <span class="avatar-initial rounded-circle bg-label-primary">
-                        {{ substr($user->name, 0, 1) }}
-                    </span>
-                </div>
+                <img src="/img/profile.png" class="m-3" alt="profil" width="100">
+
                 <h4 class="mb-1">{{ $user->name }}</h4>
                 <p class="text-muted mb-3">{{ $user->email }}</p>
                 

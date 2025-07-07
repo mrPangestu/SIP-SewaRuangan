@@ -18,6 +18,7 @@ return new class extends Migration
             $table->double('total_harga', 12, 2);
             $table->enum('status', ['menunggu_pembayaran', 'dibayar', 'dikonfirmasi', 'selesai', 'dibatalkan'])
                     ->default('menunggu_pembayaran');
+            $table->unsignedInteger('version')->default(0);
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');
@@ -29,4 +30,5 @@ return new class extends Migration
     {
         Schema::dropIfExists('pemesanan');
     }
+    
 };

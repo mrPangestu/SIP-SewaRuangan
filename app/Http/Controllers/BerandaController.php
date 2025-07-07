@@ -15,14 +15,13 @@ class BerandaController extends Controller
     {
         $query = Gedung::query()->with('kategori');
 
-
         if ($request->has('search') && !empty($request->search)) {
             $searchTerm = $request->search;
             $query->where(function($q) use ($searchTerm) {
                 $q->where('nama', 'like', '%'.$searchTerm.'%')
-                  ->orWhere('lokasi', 'like', '%'.$searchTerm.'%')
-                  ->orWhere('fasilitas', 'like', '%'.$searchTerm.'%')
-                  ->orWhere('deskripsi', 'like', '%'.$searchTerm.'%');
+                ->orWhere('lokasi', 'like', '%'.$searchTerm.'%')
+                ->orWhere('fasilitas', 'like', '%'.$searchTerm.'%')
+                ->orWhere('deskripsi', 'like', '%'.$searchTerm.'%');
             });
         }
         

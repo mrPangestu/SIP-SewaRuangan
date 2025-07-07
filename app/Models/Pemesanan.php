@@ -42,6 +42,7 @@ class Pemesanan extends Model
         'status',
     ];
 
+
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'id');
@@ -58,13 +59,15 @@ class Pemesanan extends Model
         return $this->hasOne(Pembayaran::class, 'id_pemesanan', 'id_pemesanan');
     }
     public function scopeActive($query)
-{
-    return $query->where('status', '!=', 'dibatalkan')
-        ->where('tanggal_selesai', '>', now());
-}
+    {
+        return $query->where('status', '!=', 'dibatalkan')
+            ->where('tanggal_selesai', '>', now());
+    }
 
-public function scopeUpcoming($query)
-{
-    return $query->where('tanggal_mulai', '>', now());
-}
+    public function scopeUpcoming($query)
+    {
+        return $query->where('tanggal_mulai', '>', now());
+    }
+
+    
 }

@@ -65,4 +65,10 @@ class Kernel extends HttpKernel
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
     ];
+
+    protected function schedule(Schedule $schedule)
+    {
+        $schedule->command('bookings:update-completed')->everyFiveMinutes();
+    }
+    
 }
