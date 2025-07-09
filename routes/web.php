@@ -42,8 +42,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/pembayaran/{id_pemesanan}', [PembayaranController::class, 'show'])->name('pembayaran.show');
     Route::post('/pembayaran/proses', [PembayaranController::class, 'process'])->name('pembayaran.proses');
     Route::get('/pembayaran/sukses/{id_pembayaran}', [PembayaranController::class, 'success'])->name('pembayaran.success');
+    Route::post('/pembayaran/check-status/{id_pembayaran}', [PembayaranController::class, 'checkPaymentStatus'])->name('pembayaran.check-status');
+    Route::get('/pembayaran/{id_pembayaran}/check-status', [PembayaranController::class, 'checkStatus'])->name('pembayaran.check-status');
+        
+    Route::get('/invoice/{id_pembayaran}/download', [PembayaranController::class, 'downloadInvoice'])->name('invoice.download');
     
     Route::patch('/pemesanan/{id_pemesanan}/batal', [PemesananController::class, 'batal'])->name('pemesanan.batal');
+    
     Route::get('/pemesanan', [PemesananController::class, 'index'])->name('pemesanan.index');
 });
 

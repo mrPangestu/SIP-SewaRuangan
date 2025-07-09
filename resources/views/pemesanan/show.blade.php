@@ -221,7 +221,7 @@
                                 <div class="col-md-6">
                                     <div class="info-box">
                                         <h6>Waktu Pembayaran</h6>
-                                        <p>{{ $pemesanan->pembayaran->waktu_pembayaran->format('d F Y H:i') }}</p>
+                                        <p>{{ $pemesanan->pembayaran->waktu_pembayaran ? $pemesanan->pembayaran->waktu_pembayaran->format('d F Y H:i') : '-' }}</p>
                                     </div>
                                 </div>
                             </div>
@@ -288,9 +288,10 @@
                                 @endif
                                 
                                 @if($pemesanan->status === 'dibayar')
-                                <button class="btn btn-primary rounded-pill py-2" id="printInvoice">
+                                <a href="{{ route('invoice.download', $pemesanan->pembayaran->id_pembayaran) }}" 
+                                    class="btn btn-primary rounded-pill py-2" id="printInvoice">
                                     <i class="fas fa-print me-2"></i> Cetak Invoice
-                                </button>
+                                    </a>
                                 @endif
                                 
                                 <button class="btn btn-outline-primary rounded-pill py-2" data-bs-toggle="modal" data-bs-target="#contactSupport">
@@ -299,6 +300,7 @@
                             </div>
                         </div>
                     </div>
+                    
                     
                     <!-- Summary Card -->
                     <div class="card shadow-sm border-0">

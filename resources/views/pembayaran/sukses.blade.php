@@ -28,7 +28,8 @@
             </div>
             <div class="detail-item">
                 <span class="detail-label">Tanggal</span>
-                <span class="detail-value">{{ $pembayaran->waktu_pembayaran->format('d F Y H:i') }}</span>
+                <span class="detail-value">{{ $pembayaran->waktu_pembayaran ? $pembayaran->waktu_pembayaran->format('d m Y H:i') : '-' }}</span>
+                
             </div>
             <div class="detail-item">
                 <span class="detail-label">Metode Pembayaran</span>

@@ -12,6 +12,7 @@ class Pembayaran extends Model
     public $incrementing = false;
     protected $keyType = 'string';
 
+
     protected $fillable = [
         'id_pembayaran',
         'id_pemesanan',
@@ -20,7 +21,13 @@ class Pembayaran extends Model
         'status',
         'waktu_pembayaran',
         'referensi_pembayaran',
-        'bukti_pembayaran'
+        'bukti_pembayaran',
+        'invoice_sent',
+        'snap_token'.
+        'refund_amount',
+        'refund_note',
+        'refund_date',
+        'refund_reference'
     ];
 
     protected $casts = [

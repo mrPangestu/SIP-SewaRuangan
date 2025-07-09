@@ -267,10 +267,6 @@ function initBookingForm() {
                 showToast('Gedung sudah dipesan pada waktu tersebut atau kurang dari 2 jam sebelum/sesudahnya', 'error');
             }
         })
-        .catch(error => {
-            console.error('Error checking availability:', error);
-            showToast('Gagal memeriksa ketersediaan gedung', 'error');
-        });
     }
     
     function formatDateTimeLocal(date) {
