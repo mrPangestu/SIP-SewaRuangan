@@ -12,8 +12,8 @@ class DatabaseSeeder extends Seeder
             UserSeeder::class,
             KategoriGedungSeeder::class,
             GedungSeeder::class,
-            KalenderKetersediaanSeeder::class,
-            PemesananSeeder::class,
+            // KalenderKetersediaanSeeder::class,
+            // PemesananSeeder::class,
             
         ]);
     }

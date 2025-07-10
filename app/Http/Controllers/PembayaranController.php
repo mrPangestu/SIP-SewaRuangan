@@ -27,7 +27,7 @@ class PembayaranController extends Controller
         Config::$is3ds = true;
     }
 
-    public function show($id_pemesanan)
+    public function showDeposit($id_pemesanan)
     {
         $pemesanan = Pemesanan::with(['gedung', 'user'])
             ->where('user_id', auth()->id())
@@ -35,13 +35,226 @@ class PembayaranController extends Controller
 
         if ($pemesanan->status !== 'menunggu_pembayaran') {
             return redirect()->route('pemesanan.show', $id_pemesanan)
-                ->with('info', 'Pemesanan ini sudah dibayar');
+                ->with('info', 'Pemesanan ini sudah melewati tahap deposit');
         }
 
         return view('pembayaran.show', [
             'pemesanan' => $pemesanan,
             'paymentMethods' => $this->getPaymentMethods()
         ]);
+    }
+
+    // Proses pembayaran deposit
+    public function processDeposit(Request $request, $id_pemesanan)
+    {
+        $request->validate([
+            'metode_pembayaran' => 'required|in:bank_transfer,ewallet,qris,credit_card',
+        ]);
+
+        $pemesanan = Pemesanan::where('user_id', auth()->id())
+            ->findOrFail($id_pemesanan);
+
+        if ($pemesanan->status !== 'menunggu_pembayaran') {
+            return back()->with('error', 'Pemesanan tidak memerlukan deposit lagi');
+        }
+
+        // Buat record pembayaran deposit
+        $pembayaran = Pembayaran::create([
+            'id_pembayaran' => Str::uuid(),
+            'id_pemesanan' => $pemesanan->id_pemesanan,
+            'metode_pembayaran' => $request->metode_pembayaran,
+            'jumlah' => $pemesanan->deposit_amount,
+            'status' => 'pending',
+            'referensi_pembayaran' => 'DP-' . time() . '-' . Str::random(4),
+            'jenis_pembayaran' => 'deposit'
+        ]);
+
+        return $this->handleMidtransPayment($pembayaran, 'deposit');
+    }
+
+    // Tampilkan halaman pelunasan
+    public function showPelunasan($id_pemesanan)
+    {
+        $pemesanan = Pemesanan::with(['gedung', 'user', 'pembayaran'])
+            ->where('user_id', auth()->id())
+            ->findOrFail($id_pemesanan);
+
+        if ($pemesanan->status !== 'deposit') {
+            return redirect()->route('pemesanan.show', $id_pemesanan)
+                ->with('info', 'Pemesanan ini tidak memerlukan pelunasan');
+        }
+
+        // Cek apakah deposit sudah dibayar
+        $depositPaid = $pemesanan->pembayaran()
+            ->where('jenis_pembayaran', 'deposit')
+            ->where('status', 'completed')
+            ->exists();
+
+        if (!$depositPaid) {
+            return redirect()->route('pemesanan.show', $id_pemesanan)
+                ->with('error', 'Deposit belum dibayar');
+        }
+
+        return view('pembayaran.show', [
+            'pemesanan' => $pemesanan,
+            'paymentMethods' => $this->getPaymentMethods()
+        ]);
+    }
+
+    // Proses pembayaran pelunasan
+    public function processPelunasan(Request $request, $id_pemesanan)
+    {
+        $request->validate([
+            'metode_pembayaran' => 'required|in:bank_transfer,ewallet,qris,credit_card',
+        ]);
+
+        $pemesanan = Pemesanan::where('user_id', auth()->id())
+            ->findOrFail($id_pemesanan);
+
+        if ($pemesanan->status !== 'deposit') {
+            return back()->with('error', 'Pemesanan tidak memerlukan pelunasan');
+        }
+
+        // Buat record pembayaran pelunasan
+        $pembayaran = Pembayaran::create([
+            'id_pembayaran' => Str::uuid(),
+            'id_pemesanan' => $pemesanan->id_pemesanan,
+            'metode_pembayaran' => $request->metode_pembayaran,
+            'jumlah' => $pemesanan->remaining_amount,
+            'status' => 'pending',
+            'referensi_pembayaran' => 'PL-' . time() . '-' . Str::random(4),
+            'jenis_pembayaran' => 'pelunasan'
+        ]);
+
+        return $this->handleMidtransPayment($pembayaran, 'pelunasan');
+    }
+
+    private function handleMidtransPayment(Pembayaran $pembayaran, $type)
+    {
+        $pemesanan = $pembayaran->pemesanan;
+        $user = $pemesanan->user;
+
+        $params = [
+            'transaction_details' => [
+                'order_id' => $pembayaran->referensi_pembayaran,
+                'gross_amount' => $pembayaran->jumlah,
+            ],
+            'customer_details' => [
+                'first_name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone ?? '08123456789',
+            ],
+            'enabled_payments' => $this->mapPaymentMethod($pembayaran->metode_pembayaran),
+            'callbacks' => [
+                'finish' => route('pembayaran.check-status', $pembayaran->id_pembayaran),
+            ],
+            'expiry' => [
+                'start_time' => date('Y-m-d H:i:s T'),
+                'unit' => 'hours',
+                'duration' => 24
+            ]
+        ];
+
+        try {
+            $snapToken = Snap::getSnapToken($params);
+            $pembayaran->update(['snap_token' => $snapToken]);
+
+            return view('pembayaran.midtrans', [
+                'snapToken' => $snapToken,
+                'pembayaran' => $pembayaran,
+                'paymentInstructions' => $this->getPaymentInstructions($pembayaran->metode_pembayaran),
+                'type' => $type
+            ]);
+        } catch (\Exception $e) {
+            \Log::error('Midtrans Error: '.$e->getMessage());
+            $pembayaran->update(['status' => 'failed']);
+            return back()->with('error', 'Pembayaran gagal: '.$e->getMessage());
+        }
+    }
+
+    public function checkStatus($id_pembayaran)
+    {
+        $pembayaran = Pembayaran::with(['pemesanan'])
+            ->whereHas('pemesanan', function($query) {
+                $query->where('user_id', auth()->id());
+            })
+            ->findOrFail($id_pembayaran);
+
+        if ($pembayaran->status === 'completed') {
+            return $this->handleCompletedPayment($pembayaran);
+        }
+
+        try {
+            $status = Transaction::status($pembayaran->referensi_pembayaran);
+            
+            DB::transaction(function () use ($pembayaran, $status) {
+                $newStatus = $this->mapTransactionStatus(
+                    $status->transaction_status, 
+                    $status->fraud_status ?? null
+                );
+                
+                $updateData = [
+                    'status' => $newStatus,
+                    'waktu_pembayaran' => $newStatus === 'completed' ? now() : null,
+                    'bukti_pembayaran' => $status->pdf_url ?? null
+                ];
+                
+                // Simpan detail VA jika ada
+                if (isset($status->va_numbers[0])) {
+                    $updateData['va_number'] = $status->va_numbers[0]->va_number;
+                    $updateData['payment_channel'] = $status->va_numbers[0]->bank;
+                }
+                
+                $pembayaran->update($updateData);
+
+                if ($newStatus === 'completed') {
+                    $this->updatePemesananStatus($pembayaran);
+                }
+            });
+
+            if ($pembayaran->fresh()->status === 'completed') {
+                return $this->handleCompletedPayment($pembayaran);
+            }
+
+        } catch (\Exception $e) {
+            \Log::error('Error checking payment status: ' . $e->getMessage());
+        }
+
+        return view('pembayaran.check_status', [
+            'pembayaran' => $pembayaran,
+            'retryUrl' => route('pembayaran.check-status', $pembayaran->id_pembayaran)
+        ]);
+    }
+
+    private function updatePemesananStatus(Pembayaran $pembayaran)
+    {
+        $pemesanan = $pembayaran->pemesanan;
+
+        if ($pembayaran->jenis_pembayaran === 'deposit') {
+            $pemesanan->update([
+                'status' => 'deposit',
+                'deposit_paid_at' => now()
+            ]);
+        } elseif ($pembayaran->jenis_pembayaran === 'pelunasan') {
+            $pemesanan->update([
+                'status' => 'dibayar',
+                'full_payment_paid_at' => now()
+            ]);
+            
+            // Kirim invoice pelunasan
+            $this->sendInvoice($pembayaran);
+        }
+    }
+
+    private function handleCompletedPayment(Pembayaran $pembayaran)
+    {
+        if ($pembayaran->jenis_pembayaran === 'deposit') {
+            return redirect()->route('pemesanan.show', $pembayaran->id_pemesanan)
+                ->with('success', 'Deposit berhasil dibayar. Silakan lanjutkan pembayaran pelunasan sebelum ' 
+                    . $pembayaran->pemesanan->tanggal_mulai->subDays(7)->format('d M Y'));
+        } else {
+            return redirect()->route('pembayaran.success', $pembayaran->id_pembayaran);
+        }
     }
 
         private function mapPaymentMethod($method)
@@ -86,100 +299,12 @@ class PembayaranController extends Controller
             ],
             'credit_card' => [
                 'nama' => 'Kartu Kredit',
-                'logo' => asset('img/credit-card.png'),
+                'logo' => asset('img/kredit.png'),
                 'deskripsi' => 'Visa, Mastercard, JCB'
             ]
         ];
     }
 
-    public function process(Request $request)
-    {
-        $request->validate([
-            'id_pemesanan' => 'required|exists:pemesanan,id_pemesanan',
-            'metode_pembayaran' => 'required|in:bank_transfer,ewallet,qris,credit_card',
-        ]);
-
-        $pemesanan = Pemesanan::where('user_id', auth()->id())
-            ->findOrFail($request->id_pemesanan);
-
-        // Buat record pembayaran
-        $pembayaran = Pembayaran::create([
-            'id_pembayaran' => Str::uuid(),
-            'id_pemesanan' => $pemesanan->id_pemesanan,
-            'metode_pembayaran' => $request->metode_pembayaran,
-            'jumlah' => $pemesanan->total_harga,
-            'status' => 'pending',
-            'referensi_pembayaran' => 'INV-' . time() . '-' . Str::random(4),
-        ]);
-
-        // Proses pembayaran Midtrans
-        return $this->handleMidtransPayment($pembayaran);
-    }
-
-    private function handleMidtransPayment(Pembayaran $pembayaran)
-    {
-        $pemesanan = $pembayaran->pemesanan;
-        $user = $pemesanan->user;
-
-        $params = [
-            'transaction_details' => [
-                'order_id' => $pembayaran->referensi_pembayaran,
-                'gross_amount' => $pembayaran->jumlah,
-            ],
-            'customer_details' => [
-                'first_name' => $user->name,
-                'email' => $user->email,
-                'phone' => $user->phone ?? '08123456789',
-            ],
-            'enabled_payments' => $this->mapPaymentMethod($pembayaran->metode_pembayaran),
-            'callbacks' => [
-                'finish' => route('pembayaran.check-status', $pembayaran->id_pembayaran),
-            ],
-            'expiry' => [
-                'start_time' => date('Y-m-d H:i:s T'),
-                'unit' => 'hours',
-                'duration' => 24
-            ]
-        ];
-
-        // Penyesuaian khusus untuk beberapa metode pembayaran
-        switch ($pembayaran->metode_pembayaran) {
-            case 'bank_transfer':
-                $params['bank_transfer'] = [
-                    'bank' => 'bca', // Default bank
-                    'va_number' => '1234567890', // Nomor VA contoh
-                ];
-                break;
-                
-            case 'ewallet':
-                $params['ewallet'] = [
-                    'channel_code' => $this->getDefaultEwalletChannel()
-                ];
-                break;
-                
-            case 'cstore':
-                $params['cstore'] = [
-                    'store' => 'indomaret',
-                    'message' => 'Pembayaran untuk order #'.$pembayaran->referensi_pembayaran
-                ];
-                break;
-        }
-
-        try {
-            $snapToken = Snap::getSnapToken($params);
-            $pembayaran->update(['snap_token' => $snapToken]);
-
-            return view('pembayaran.midtrans', [
-                'snapToken' => $snapToken,
-                'pembayaran' => $pembayaran,
-                'paymentInstructions' => $this->getPaymentInstructions($pembayaran->metode_pembayaran)
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Midtrans Error: '.$e->getMessage());
-            $pembayaran->update(['status' => 'failed']);
-            return back()->with('error', 'Pembayaran gagal: '.$e->getMessage());
-        }
-    }
 
     private function getDefaultEwalletChannel()
     {
@@ -235,66 +360,7 @@ class PembayaranController extends Controller
 
 
     // Fungsi baru untuk mengecek status pembayaran
-    public function checkStatus($id_pembayaran)
-    {
-        $pembayaran = Pembayaran::with('pemesanan')
-            ->whereHas('pemesanan', function($query) {
-                $query->where('user_id', auth()->id());
-            })
-            ->findOrFail($id_pembayaran);
 
-        if ($pembayaran->status === 'completed') {
-            return redirect()->route('pembayaran.success', $pembayaran->id_pembayaran);
-        }
-
-        try {
-            $status = Transaction::status($pembayaran->referensi_pembayaran);
-            
-            DB::transaction(function () use ($pembayaran, $status) {
-                $newStatus = $this->mapTransactionStatus(
-                    $status->transaction_status, 
-                    $status->fraud_status ?? null
-                );
-                
-                $updateData = [
-                    'status' => $newStatus,
-                    'waktu_pembayaran' => $newStatus === 'completed' ? now() : null,
-                    'bukti_pembayaran' => $status->pdf_url ?? null
-                ];
-                
-                // Simpan detail spesifik pembayaran
-                if (isset($status->va_numbers[0])) {
-                    $updateData['va_number'] = $status->va_numbers[0]->va_number;
-                    $updateData['payment_channel'] = $status->va_numbers[0]->bank;
-                } elseif ($status->payment_type === 'qris') {
-                    $updateData['payment_channel'] = 'qris';
-                } elseif ($status->payment_type === 'gopay') {
-                    $updateData['payment_channel'] = 'gopay';
-                } elseif (in_array($status->payment_type, ['cstore', 'indomaret', 'alfamart'])) {
-                    $updateData['payment_channel'] = $status->payment_type;
-                    $updateData['store_code'] = $status->merchant_id;
-                }
-                
-                $pembayaran->update($updateData);
-
-                if ($newStatus === 'completed') {
-                    $pembayaran->pemesanan->update(['status' => 'dibayar']);
-                }
-            });
-
-            if ($pembayaran->fresh()->status === 'completed') {
-                return redirect()->route('pembayaran.success', $pembayaran->id_pembayaran);
-            }
-
-        } catch (\Exception $e) {
-            \Log::error('Error checking payment status: ' . $e->getMessage());
-        }
-
-        return view('pembayaran.check_status', [
-            'pembayaran' => $pembayaran,
-            'retryUrl' => route('pembayaran.check-status', $pembayaran->id_pembayaran)
-        ]);
-    }
 
     private function mapTransactionStatus($transactionStatus, $fraudStatus)
     {
@@ -321,6 +387,16 @@ class PembayaranController extends Controller
     
         return view('pembayaran.sukses', compact('pembayaran'));
     }
+
+
+
+
+
+
+
+    
+
+
 
     private function sendInvoice(Pembayaran $pembayaran)
     {

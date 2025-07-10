@@ -87,19 +87,45 @@
                             
                             <div class="border-t border-gray-200 pt-4">
                                 <div class="flex justify-between">
-                                    <p class="text-sm font-medium text-gray-900">Subtotal</p>
+                                    <p class="text-sm font-medium text-gray-900">Total Harga</p>
                                     <p class="text-sm text-gray-600">Rp {{ number_format($pemesanan->total_harga, 0, ',', '.') }}</p>
                                 </div>
                                 <div class="flex justify-between mt-2">
                                     <p class="text-sm font-medium text-gray-900">Biaya Layanan</p>
                                     <p class="text-sm text-gray-600">Rp 0</p>
                                 </div>
+                                @if ($pemesanan->status === 'menunggu_pembayaran')
+
+                                <div class="flex justify-between mt-2">
+                                    <p class="text-sm font-medium text-gray-900">Deposit (20%) </p>
+                                    <p class="text-sm font-bold text-gray-600">Rp {{ number_format($pemesanan->deposit_amount, 0, ',', '.') }}</p>
+                                </div>
+
+                                @elseif ($pemesanan->status === 'deposit')
+
+                                <div class="flex justify-between mt-2">
+                                    <p class="text-sm font-medium text-gray-900">Deposit (20%) <span style="font-size: 1.2rem;">&#10003;</span></p>
+                                    <p class="text-sm font-bold text-gray-600"><del> Rp {{ number_format($pemesanan->deposit_amount, 0, ',', '.') }} </del></p>
+                                </div>
+
+                                <div class="flex justify-between mt-2">
+                                    <p class="text-sm font-medium text-gray-900">Sisa Pembayaran </p>
+                                    <p class="text-sm font-bold text-gray-600">Rp {{ number_format($pemesanan->remaining_amount, 0, ',', '.') }}</p>
+                                </div>
+
+                                @endif
                             </div>
                             
                             <div class="border-t border-gray-200 pt-4">
                                 <div class="flex justify-between items-center">
                                     <p class="text-base font-medium text-gray-900">Total Pembayaran</p>
-                                    <p class="text-2xl font-bold text-blue-600">Rp {{ number_format($pemesanan->total_harga, 0, ',', '.') }}</p>
+                                    @if ($pemesanan->status === 'menunggu_pembayaran')
+                                    <p class="text-2xl font-bold text-blue-600">Rp {{ number_format($pemesanan->deposit_amount, 0, ',', '.') }}</p>
+                                        
+                                    @elseif ($pemesanan->status === 'deposit')
+                                    <p class="text-2xl font-bold text-blue-600">Rp {{ number_format($pemesanan->remaining_amount, 0, ',', '.') }}</p>
+                                        
+                                    @endif
                                 </div>
                             </div>
                         </div>
@@ -129,7 +155,13 @@
                         <h2 class="text-xl font-bold text-white">Metode Pembayaran</h2>
                     </div>
                     
-                    <form id="paymentForm" action="{{ route('pembayaran.proses') }}" method="POST" class="p-6">
+                    @if($pemesanan->status === 'menunggu_pembayaran')
+                    <form id="paymentForm" action="{{ route('pembayaran.proses-deposit', $pemesanan->id_pemesanan) }}" method="POST" class="p-6">
+
+                    @elseif($pemesanan->status === 'deposit')
+                    <form id="paymentForm" action="{{ route('pembayaran.proses-pelunasan', $pemesanan->id_pemesanan) }}" method="POST" class="p-6">
+
+                    @endif
                         @csrf
                         <input type="hidden" name="id_pemesanan" value="{{ $pemesanan->id_pemesanan }}">
                         

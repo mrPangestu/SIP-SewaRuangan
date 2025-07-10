@@ -237,10 +237,31 @@
                                     </div>
                                 </div>
                             </div>
+                            @elseif($pemesanan->status === 'deposit')
+                            <div class="card shadow-sm border-warning border-2 my-4">
+                                <div class="card-body p-4">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center">
+                                        <div class="text-center text-md-start mb-3 mb-md-0">
+                                            <div class="d-flex align-items-center justify-content-center justify-content-md-start">
+                                                <i class="fas fa-exclamation-circle text-warning me-2 fs-4"></i>
+                                                <h5 class="mb-0 text-warning">selesaikan Pembayaran</h5>
+                                            </div>
+                                            <p class="mb-0 text-muted">Silakan selesaikan pembayaran untuk mengkonfirmasi pemesanan Anda</p>
+                                        </div>
+                                        <a href="{{ route('pembayaran.pelunasan', $pemesanan->id_pemesanan) }}" 
+                                            class="btn btn-warning rounded-pill px-4 py-2 fw-medium">
+                                            <i class="fas fa-credit-card me-2"></i> Lanjutkan Pembayaran
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                             @endif
                         </div>
                     </div>
                 </div>
+                
+                
+
                 @elseif($pemesanan->status === 'menunggu_pembayaran')
                 <div class="card shadow-sm border-warning border-2 mb-4">
                     <div class="card-body p-4">
@@ -252,13 +273,16 @@
                                 </div>
                                 <p class="mb-0 text-muted">Silakan selesaikan pembayaran untuk mengkonfirmasi pemesanan Anda</p>
                             </div>
-                            <a href="{{ route('pembayaran.show', $pemesanan->id_pemesanan) }}" 
+                            <a href="{{ route('pembayaran.deposit', $pemesanan->id_pemesanan) }}" 
                                 class="btn btn-warning rounded-pill px-4 py-2 fw-medium">
                                 <i class="fas fa-credit-card me-2"></i> Lanjutkan Pembayaran
                             </a>
                         </div>
                     </div>
                 </div>
+                
+                
+                
                 @endif
             </div>
 
@@ -306,23 +330,60 @@
                     <div class="card shadow-sm border-0">
                         <div class="card-body p-4">
                             <h5 class="mb-4">Ringkasan Biaya</h5>
-                            <div class="summary-item">
-                                <span>Harga Gedung ({{ $pemesanan->tanggal_mulai->diffInHours($pemesanan->tanggal_selesai) }} jam)</span>
-                                <span>Rp {{ number_format($pemesanan->gedung->harga * $pemesanan->tanggal_mulai->diffInHours($pemesanan->tanggal_selesai), 0, ',', '.') }}</span>
-                            </div>
-                            <div class="summary-item">
-                                <span>Biaya Layanan</span>
-                                <span>Rp 0</span>
-                            </div>
-                            <div class="summary-item">
-                                <span>Pajak</span>
-                                <span>Rp 0</span>
-                            </div>
-                            <div class="summary-divider"></div>
-                            <div class="summary-total">
-                                <span>Total</span>
-                                <span class="fw-bold">Rp {{ number_format($pemesanan->gedung->harga * $pemesanan->tanggal_mulai->diffInHours($pemesanan->tanggal_selesai), 0, ',', '.') }}</span>
-                            </div>
+                            @if ($pemesanan->status === 'deposit')
+                                <div class="summary-item">
+                                    <span>Harga Gedung ({{ $pemesanan->tanggal_mulai->diffInHours($pemesanan->tanggal_selesai) }} jam)</span>
+                                    <span><del>Rp {{ number_format($pemesanan->gedung->harga * $pemesanan->tanggal_mulai->diffInHours($pemesanan->tanggal_selesai), 0, ',', '.') }}</del></span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Biaya Layanan</span>
+                                    <span>Rp 0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Pajak</span>
+                                    <span>Rp 0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Deposit (20%)</span>
+                                    <span>Rp {{ number_format($pemesanan->deposit_amount, 0, ',', '.') }}</span>
+                                </div>
+                                <div class="summary-divider"></div>
+                                <div class="summary-total">
+                                    <span>Total</span>
+                                    <span class="fw-bold">Rp {{ number_format($pemesanan->deposit_amount, 0, ',', '.') }}</span>
+                                </div>
+
+                            @elseif ($pemesanan->status === 'dibayar')
+                                <div class="summary-item">
+                                    <span>Harga Gedung ({{ $pemesanan->tanggal_mulai->diffInHours($pemesanan->tanggal_selesai) }} jam)</span>
+                                    <span>Rp {{ number_format($pemesanan->gedung->harga * $pemesanan->tanggal_mulai->diffInHours($pemesanan->tanggal_selesai), 0, ',', '.') }}</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Biaya Layanan</span>
+                                    <span>Rp 0</span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Deposit (20%)</span>
+                                    <span><del> Rp {{ number_format($pemesanan->deposit_amount, 0, ',', '.') }} </del></span>
+                                </div>
+                                <div class="summary-item">
+                                    <span>Sisa Pembayaran</span>
+                                    <span><del>Rp {{ number_format($pemesanan->remaining_amount, 0, ',', '.') }}</del></span>
+                                </div>
+                                <div class="summary-divider"></div>
+                                <div class="summary-total">
+                                    <span>Total</span>
+                                    <span class="fw-bold">Rp {{ number_format($pemesanan->gedung->harga * $pemesanan->tanggal_mulai->diffInHours($pemesanan->tanggal_selesai), 0, ',', '.') }}</span>
+                                </div>
+
+                            @endif
+
+
+
+
+
+
+
                         </div>
                     </div>
                 </div>

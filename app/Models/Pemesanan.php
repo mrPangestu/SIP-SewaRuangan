@@ -39,6 +39,10 @@ class Pemesanan extends Model
         'tanggal_selesai',
         'nama_acara',
         'total_harga',
+        'deposit_amount',
+        'remaining_amount',
+        'deposit_paid_at',
+        'full_payment_paid_at',
         'status',
     ];
 

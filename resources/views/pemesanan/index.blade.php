@@ -108,6 +108,7 @@
                         <select id="status-filter" class="form-select form-select-sm w-auto">
                             <option value="all">Semua Status</option>
                             <option value="menunggu_pembayaran">Menunggu Pembayaran</option>
+                            <option value="deposit">Deposit</option>
                             <option value="dibayar">Dibayar</option>
                             <option value="dikonfirmasi">Dikonfirmasi</option>
                             <option value="selesai">Selesai</option>
@@ -135,9 +136,14 @@
                     <div class="order-item-body">
                         <div class="order-venue">
                             <div class="venue-image">
-                                <img src="{{ asset('storage/' . $pemesanan->gedung->gambar) }}" 
-                                     alt="{{ $pemesanan->gedung->nama }}" 
-                                     class="img-fluid rounded-3">
+                                @if($pemesanan->gedung->first_image)
+                                    <img src="{{ asset('storage/gedung_images/' . $pemesanan->gedung->first_image) }}" 
+                                        class="building-image" 
+                                        alt="{{ $pemesanan->gedung->nama }}"
+                                        onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'image-fallback\'><i class=\'fas fa-image\'></i></div>'">
+                                @else
+                                    <div class='image-fallback'><i class='fas fa-image'></i></div>
+                                @endif
                             </div>
                             <div class="venue-info">
                                 <h5 class="venue-name">{{ $pemesanan->gedung->nama }}</h5>
@@ -169,10 +175,17 @@
                                     <i class="fas fa-eye me-1"></i> Detail
                                 </a>
                                 @if($pemesanan->status === 'menunggu_pembayaran')
-                                <a href="{{ route('pembayaran.show', $pemesanan->id_pemesanan) }}" 
+                                <a href="{{ route('pembayaran.deposit', $pemesanan->id_pemesanan) }}" 
                                    class="btn btn-primary btn-sm rounded-pill">
                                     <i class="fas fa-credit-card me-1"></i> Bayar Sekarang
                                 </a>
+                                
+                                @elseif($pemesanan->status === 'deposit')
+                                <a href="{{ route('pembayaran.pelunasan', $pemesanan->id_pemesanan) }}" 
+                                   class="btn btn-primary btn-sm rounded-pill">
+                                    <i class="fas fa-credit-card me-1"></i> Bayar Sekarang
+                                </a>
+
                                 @endif
                             </div>
                         </div>

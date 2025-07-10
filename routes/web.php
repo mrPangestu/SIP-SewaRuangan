@@ -38,9 +38,15 @@ Route::middleware('auth')->group(function () {
     Route::post('/pemesanan', [PemesananController::class, 'store'])->name('pemesanan.store');
     Route::get('/pemesanan/{id_pemesanan}', [PemesananController::class, 'show'])->name('pemesanan.show');
 
-    // Pembayaran
-    Route::get('/pembayaran/{id_pemesanan}', [PembayaranController::class, 'show'])->name('pembayaran.show');
-    Route::post('/pembayaran/proses', [PembayaranController::class, 'process'])->name('pembayaran.proses');
+    // Deposit routes
+    Route::get('/pembayaran/{id_pemesanan}/deposit', [PembayaranController::class, 'showDeposit'])->name('pembayaran.deposit');
+    Route::post('/pembayaran/{id_pemesanan}/deposit/proses', [PembayaranController::class, 'processDeposit'])->name('pembayaran.proses-deposit');
+
+    // Pelunasan routes
+    Route::get('/pembayaran/{id_pemesanan}/pelunasan', [PembayaranController::class, 'showPelunasan'])->name('pembayaran.pelunasan');
+    Route::post('/pembayaran/{id_pemesanan}/pelunasan/proses', [PembayaranController::class, 'processPelunasan'])->name('pembayaran.proses-pelunasan');
+
+
     Route::get('/pembayaran/sukses/{id_pembayaran}', [PembayaranController::class, 'success'])->name('pembayaran.success');
     Route::post('/pembayaran/check-status/{id_pembayaran}', [PembayaranController::class, 'checkPaymentStatus'])->name('pembayaran.check-status');
     Route::get('/pembayaran/{id_pembayaran}/check-status', [PembayaranController::class, 'checkStatus'])->name('pembayaran.check-status');

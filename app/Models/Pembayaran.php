@@ -14,20 +14,9 @@ class Pembayaran extends Model
 
 
     protected $fillable = [
-        'id_pembayaran',
-        'id_pemesanan',
-        'metode_pembayaran',
-        'jumlah',
-        'status',
-        'waktu_pembayaran',
-        'referensi_pembayaran',
-        'bukti_pembayaran',
-        'invoice_sent',
-        'snap_token'.
-        'refund_amount',
-        'refund_note',
-        'refund_date',
-        'refund_reference'
+        'id_pembayaran', 'id_pemesanan', 'metode_pembayaran', 'jenis_pembayaran',
+        'jumlah', 'status', 'waktu_pembayaran', 'referensi_pembayaran', 
+        'snap_token', 'va_number', 'payment_channel', 'bukti_pembayaran', 'invoice_sent',
     ];
 
     protected $casts = [

@@ -16,7 +16,11 @@ return new class extends Migration
             $table->datetime('tanggal_selesai'); // Fixed typo (note the double 's')
             $table->string('nama_acara', 30);
             $table->double('total_harga', 12, 2);
-            $table->enum('status', ['menunggu_pembayaran', 'dibayar', 'dikonfirmasi', 'selesai', 'dibatalkan'])
+            $table->decimal('deposit_amount', 13, 2)->default(0);
+            $table->decimal('remaining_amount', 13, 2)->default(0);
+            $table->dateTime('deposit_paid_at')->nullable();
+            $table->dateTime('full_payment_paid_at')->nullable();
+            $table->enum('status', ['menunggu_pembayaran', 'deposit', 'dibayar', 'dikonfirmasi', 'selesai', 'dibatalkan'])
                     ->default('menunggu_pembayaran');
             $table->unsignedInteger('version')->default(0);
             $table->timestamps();

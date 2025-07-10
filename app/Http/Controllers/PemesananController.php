@@ -123,23 +123,30 @@ class PemesananController extends Controller
                 
         }
 
-        // Hitung total harga
+        
+        // Hitung tanggal selesai dan total harga
+        $tanggalSelesai = clone $startTime;
+        $tanggalSelesai->add(new \DateInterval("PT{$validated['durasi']}H"));
         $totalHarga = $gedung->harga * $validated['durasi'];
+        $depositAmount = $totalHarga * 0.2; // 20% deposit
+        $remainingAmount = $totalHarga - $depositAmount;
 
         // Buat pemesanan
         $pemesanan = Pemesanan::create([
             'id_pemesanan' => Str::uuid(),
             'user_id' => Auth::id(),
             'id_gedung' => $validated['id_gedung'],
-            'tanggal_mulai' => $tanggalMulai,
+            'tanggal_mulai' => $startTime,
             'tanggal_selesai' => $tanggalSelesai,
             'nama_acara' => $validated['nama_acara'],
             'total_harga' => $totalHarga,
+            'deposit_amount' => $depositAmount,
+            'remaining_amount' => $remainingAmount,
             'status' => 'menunggu_pembayaran'
         ]);
 
-        return redirect()->route('pembayaran.show', $pemesanan->id_pemesanan)
-            ->with('success', 'Pemesanan berhasil dibuat. Silakan lanjutkan pembayaran.');
+        return redirect()->route('pembayaran.deposit', $pemesanan->id_pemesanan)
+            ->with('success', 'Pemesanan berhasil dibuat. Silakan lanjutkan pembayaran deposit.');
     }
 
     private function checkJadwalBentrok($id_gedung, $tanggalMulai, $tanggalSelesai)
