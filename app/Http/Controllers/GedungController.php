@@ -18,7 +18,7 @@ class GedungController extends Controller
     
     // Get all distinct booked dates for this gedung
     $bookedDates = Pemesanan::where('id_gedung', $id_gedung)
-        ->where('status', 'dibayar')
+        ->whereIn('status', ['deposit','dibayar','dikonfirmasi'])
         ->selectRaw('DISTINCT DATE(tanggal_mulai) as date')
         ->pluck('date')
         ->toArray();
@@ -35,7 +35,7 @@ public function getDateBookings($id_gedung, $date)
             $query->select('id', 'name'); // Hanya ambil data yang diperlukan
         }])
         ->where('id_gedung', $id_gedung)
-        ->where('status', 'dibayar')
+        ->whereIn('status', ['deposit','dibayar','dikonfirmasi'])
         ->whereDate('tanggal_mulai', $date)
         ->get(['nama_acara', 'tanggal_mulai', 'tanggal_selesai', 'user_id']);
     

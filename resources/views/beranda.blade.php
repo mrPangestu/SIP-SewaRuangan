@@ -72,10 +72,7 @@
                         <i class="fas fa-sliders-h"></i>
                         <span>Filter</span>
                     </button>
-                    <button id="calendarBtn" class="action-btn">
-                        <i class="far fa-calendar-alt"></i>
-                        <span>Kalender</span>
-                    </button>
+
                 </div>
                 
                 <!-- Building List -->

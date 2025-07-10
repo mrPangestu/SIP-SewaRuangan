@@ -13,7 +13,7 @@ class DatabaseSeeder extends Seeder
             KategoriGedungSeeder::class,
             GedungSeeder::class,
             // KalenderKetersediaanSeeder::class,
-            // PemesananSeeder::class,
+            PemesananSeeder::class,
             
         ]);
     }

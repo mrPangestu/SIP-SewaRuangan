@@ -16,7 +16,10 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
-        $schedule->command('bookings:clean')->hourly();
+        $schedule->command('bookings:cleanup')
+        ->everyFiveMinutes() // Run every 5 minutes for more accuracy
+        ->withoutOverlapping()
+        ->appendOutputTo(storage_path('logs/booking_cleanup.log'));
 
     }
 

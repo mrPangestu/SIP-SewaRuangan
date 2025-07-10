@@ -70,7 +70,13 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
         Route::get('/', [AdminController::class, 'pemesananIndex'])->name('index');
         Route::get('/{id_pemesanan}', [AdminController::class, 'pemesananShow'])->name('show');
         Route::post('/{id_pemesanan}/confirm', [AdminController::class, 'pemesananConfirm'])->name('confirm');
+        
     });
+
+    Route::get('/pemesanan', [AdminController::class, 'pemesananIndex'])->name('pemesanan.index');
+    Route::get('/pemesanan/{id_pemesanan}', [AdminController::class, 'pemesananDetail'])->name('pemesanan.detail');
+    Route::post('/pemesanan/{id_pemesanan}/complete', [AdminController::class, 'completeBooking'])->name('pemesanan.complete');
+    Route::post('/pemesanan/{id_pemesanan}/send-reminder', [AdminController::class, 'sendDepositReminder'])->name('pemesanan.send-reminder');
     
   Route::prefix('kategori')->name('kategori.')->group(function() {
         Route::get('/', [AdminController::class, 'kategoriIndex'])->name('index');

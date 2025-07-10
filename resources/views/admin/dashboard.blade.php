@@ -120,7 +120,7 @@
                                     </span>
                                 </td>
                                 <td>
-                                    <a href="{{ route('admin.pemesanan.show', $pemesanan->id_pemesanan) }}" 
+                                    <a href="{{ route('admin.pemesanan.index', $pemesanan->id_pemesanan) }}" 
                                         class="btn btn-sm btn-icon btn-outline-primary" data-bs-toggle="tooltip" title="Detail">
                                         <i class="fas fa-eye"></i>
                                     </a>

@@ -14,7 +14,7 @@
             <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="dropdownMenuButton">
                 <li><h6 class="dropdown-header">Filter Status</h6></li>
                 <li><a class="dropdown-item" href="{{ request()->fullUrlWithQuery(['status' => '']) }}">Semua</a></li>
-                @foreach(['menunggu_pembayaran', 'dibayar', 'dikonfirmasi', 'selesai', 'dibatalkan'] as $status)
+                @foreach(['menunggu_pembayaran', 'deposit', 'dibayar', 'dikonfirmasi', 'selesai', 'dibatalkan'] as $status)
                 <li>
                     <a class="dropdown-item" href="{{ request()->fullUrlWithQuery(['status' => $status]) }}">
                         {{ ucfirst(str_replace('_', ' ', $status)) }}
@@ -34,6 +34,8 @@
                         <th>Tanggal</th>
                         <th>Pemesan</th>
                         <th>Total</th>
+                        <th>Deposit</th>
+                        <th>Sisa</th>
                         <th>Status</th>
                         <th>Aksi</th>
                     </tr>
@@ -46,6 +48,8 @@
                         <td>{{ $item->tanggal_mulai->format('d M Y H:i') }}</td>
                         <td>{{ $item->user->name }}</td>
                         <td>Rp {{ number_format($item->total_harga, 0, ',', '.') }}</td>
+                        <td>Rp {{ number_format($item->deposit_amount, 0, ',', '.') }}</td>
+                        <td>Rp {{ number_format($item->remaining_amount, 0, ',', '.') }}</td>
                         <td>
                             <span class="badge bg-{{ $item->status_color }}">
                                 {{ ucfirst(str_replace('_', ' ', $item->status)) }}
@@ -53,15 +57,34 @@
                         </td>
                         <td>
                             <div class="d-flex">
-                                <a href="{{ route('admin.pemesanan.show', $item->id_pemesanan) }}" 
+                                <a href="{{ route('admin.pemesanan.detail', $item->id_pemesanan) }}" 
                                     class="btn btn-sm btn-icon btn-outline-primary me-2" title="Detail">
                                     <i class="fas fa-eye"></i>
                                 </a>
+
                                 @if($item->status === 'dibayar')
                                 <form action="{{ route('admin.pemesanan.confirm', $item->id_pemesanan) }}" method="POST">
                                     @csrf
                                     <button type="submit" class="btn btn-sm btn-icon btn-outline-success" title="Konfirmasi">
                                         <i class="fas fa-check"></i>
+                                    </button>
+                                </form>
+                                @endif
+                                
+                                @if($item->status ==='dikonfirmasi')
+                                <form action="{{ route('admin.pemesanan.complete', $item->id_pemesanan) }}" method="POST" class="me-2">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-success" title="Tandai Selesai">
+                                        <i class="fas fa-check-double"></i>
+                                    </button>
+                                </form>
+                                @endif
+                                
+                                @if($item->status === 'deposit')
+                                <form action="{{ route('admin.pemesanan.send-reminder', $item->id_pemesanan) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="btn btn-sm btn-icon btn-outline-warning" title="Kirim Pengingat">
+                                        <i class="fas fa-bell"></i>
                                     </button>
                                 </form>
                                 @endif

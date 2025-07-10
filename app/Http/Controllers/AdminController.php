@@ -9,8 +9,11 @@ use App\Models\KategoriGedung;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\DepositReminderManualMail;
 use Carbon\Carbon;
 use Illuminate\Support\Str;
+use Spatie\Activitylog\Facades\Activity;
 
 class AdminController extends Controller
 {
@@ -86,7 +89,7 @@ class AdminController extends Controller
             $query->where('status', $request->status);
         }
 
-        $pemesanan = $query->paginate(10);
+        $pemesanan = $query->paginate(100);
 
         return view('admin.pemesanan.index', compact('pemesanan'));
     }
@@ -99,6 +102,79 @@ class AdminController extends Controller
             
 
         return view('pemesanan.show', compact('pemesanan'));
+    }
+
+    public function pemesananDone($id_pemesanan)
+    {
+
+        $pemesanan = Pemesanan::where('status', 'dibayar')
+        ->whereDoesntHave('pembayaran', function($query) {
+            $query->where('status', '!=', 'completed');
+        })
+        ->lockForUpdate()
+        ->findOrFail($id_pemesanan);
+
+    $pemesanan->update(['status' => 'dikonfirmasi']);
+
+    return redirect()->back()
+        ->with('success', 'Pemesanan berhasil dikonfirmasi');
+    }
+        /**
+     * Detail pemesanan untuk admin
+     */
+    public function pemesananDetail($id_pemesanan)
+    {
+        $pemesanan = Pemesanan::with([
+            'gedung', 
+            'user', 
+            'pembayaran' => function($query) {
+                $query->orderBy('created_at', 'desc');
+            }
+        ])->findOrFail($id_pemesanan);
+
+        return view('admin.pemesanan.detail', compact('pemesanan'));
+    }
+
+    public function completeBooking($id_pemesanan)
+    {
+        $pemesanan = Pemesanan::whereIn('status', ['dibayar', 'dikonfirmasi'])
+            ->lockForUpdate()
+            ->findOrFail($id_pemesanan);
+
+        DB::transaction(function () use ($pemesanan) {
+            $pemesanan->update([
+                'status' => 'selesai',
+            ]);
+
+            // Log activity
+        });
+
+        return redirect()->back()
+            ->with('success', 'Pemesanan berhasil diselesaikan');
+    }
+
+    /**
+     * Mengirim pengingat deposit manual
+     */
+    public function sendDepositReminder($id_pemesanan)
+    {
+        $pemesanan = Pemesanan::with(['user', 'gedung'])
+            ->where('status', 'deposit')
+            ->findOrFail($id_pemesanan);
+
+        // Kirim email
+        Mail::to($pemesanan->user->email)
+            ->send(new DepositReminderManualMail($pemesanan));
+
+        // Update waktu pengingat
+        $pemesanan->update([
+            'reminder_sent_at' => now(),
+            'version' => DB::raw('version + 1')
+        ]);
+
+        // Log activity
+        return redirect()->back()
+            ->with('success', 'Email pengingat deposit berhasil dikirim');
     }
 
     public function pemesananConfirm($id_pemesanan)
@@ -117,14 +193,7 @@ class AdminController extends Controller
         ->with('success', 'Pemesanan berhasil dikonfirmasi');
     }
 
-    public function pemesananDetail($id_pemesanan)
-    {
-        $pemesanan = Pemesanan::with(['gedung', 'user', 'pembayaran'])
-            
-            ->findOrFail($id_pemesanan);
 
-        return view('pemesanan.show', compact('pemesanan'));
-    }
 
    // ==============================================
     // KATEGORI GEDUNG CRUD

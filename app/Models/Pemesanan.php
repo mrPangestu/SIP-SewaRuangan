@@ -5,10 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+
+
 
 class Pemesanan extends Model
 {
-    use HasFactory;
+    use HasFactory; 
 
     protected $table = 'pemesanan'; // Explicit table name
     protected $primaryKey = 'id_pemesanan';
@@ -43,6 +46,7 @@ class Pemesanan extends Model
         'remaining_amount',
         'deposit_paid_at',
         'full_payment_paid_at',
+        'reminder_sent_at',
         'status',
     ];
 
@@ -73,5 +77,18 @@ class Pemesanan extends Model
         return $query->where('tanggal_mulai', '>', now());
     }
 
-    
+    public function updateWithLock(array $attributes)
+    {
+        return DB::transaction(function () use ($attributes) {
+            $freshPemesanan = $this->fresh();
+            
+            if ($freshPemesanan->version !== $this->version) {
+                throw new \Exception('Data pemesanan telah diubah oleh proses lain');
+            }
+            
+            $attributes['version'] = $this->version + 1;
+            
+            return $freshPemesanan->update($attributes);
+        });
+    }
 }

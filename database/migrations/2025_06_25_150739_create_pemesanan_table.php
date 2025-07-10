@@ -20,6 +20,7 @@ return new class extends Migration
             $table->decimal('remaining_amount', 13, 2)->default(0);
             $table->dateTime('deposit_paid_at')->nullable();
             $table->dateTime('full_payment_paid_at')->nullable();
+            $table->timestamp('reminder_sent_at')->nullable();
             $table->enum('status', ['menunggu_pembayaran', 'deposit', 'dibayar', 'dikonfirmasi', 'selesai', 'dibatalkan'])
                     ->default('menunggu_pembayaran');
             $table->unsignedInteger('version')->default(0);
