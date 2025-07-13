@@ -8,12 +8,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Carbon\Carbon;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PemesananController extends Controller
 {
-
-    
-
     public function index(Request $request)
     {
         $query = Pemesanan::with(['gedung', 'pembayaran'])
@@ -62,7 +60,7 @@ class PemesananController extends Controller
         // Validasi waktu pemesanan
         $startTime = Carbon::parse($validated['tanggal_mulai']);
         $minAllowedTime = now()->addHours(2);
-        
+
         if ($startTime->lt(now())) {
             return back()->withErrors([
                 'tanggal_mulai' => 'Waktu pemesanan tidak boleh di masa lalu'
@@ -78,12 +76,12 @@ class PemesananController extends Controller
 
         // Cek ketersediaan gedung
         $endTime = $startTime->copy()->addHours($validated['durasi']);
-            
+
         $isAvailable = Pemesanan::where('id_gedung', $validated['id_gedung'])
-            ->where(function($query) use ($startTime, $endTime) {
+            ->where(function ($query) use ($startTime, $endTime) {
                 $query->whereBetween('tanggal_mulai', [$startTime, $endTime])
                     ->orWhereBetween('tanggal_selesai', [$startTime, $endTime])
-                    ->orWhere(function($query) use ($startTime, $endTime) {
+                    ->orWhere(function ($query) use ($startTime, $endTime) {
                         $query->where('tanggal_mulai', '<', $startTime)
                             ->where('tanggal_selesai', '>', $endTime);
                     });
@@ -95,7 +93,6 @@ class PemesananController extends Controller
             return back()->withErrors([
                 'tanggal_mulai' => 'Gedung tidak tersedia pada waktu yang dipilih'
             ])->with('openBookingModal', true);
-            
         }
 
 
@@ -121,11 +118,9 @@ class PemesananController extends Controller
                     'tanggal_mulai' => 'Gedung sudah dipesan pada waktu tersebut atau kurang dari 2 jam sebelum/sesudahnya'
                 ])
                 ->with('openBookingModal', true);
-                
-                
         }
 
-        
+
         // Hitung tanggal selesai dan total harga
         $tanggalSelesai = clone $startTime;
         $tanggalSelesai->add(new \DateInterval("PT{$validated['durasi']}H"));
@@ -156,19 +151,19 @@ class PemesananController extends Controller
         // Tambah buffer 2 jam sebelum dan sesudah
         $bufferStart = clone $tanggalMulai;
         $bufferStart->sub(new \DateInterval('PT2H'));
-        
+
         $bufferEnd = clone $tanggalSelesai;
-            $bufferEnd->add(new \DateInterval('PT2H'));
+        $bufferEnd->add(new \DateInterval('PT2H'));
 
         // Cek apakah ada pemesanan yang bentrok
         $existingBookings = Pemesanan::where('id_gedung', $id_gedung)
             ->where('status', '!=', 'dibatalkan') // Abaikan yang dibatalkan
-            ->where(function($query) use ($bufferStart, $bufferEnd) {
+            ->where(function ($query) use ($bufferStart, $bufferEnd) {
                 $query->whereBetween('tanggal_mulai', [$bufferStart, $bufferEnd])
                     ->orWhereBetween('tanggal_selesai', [$bufferStart, $bufferEnd])
-                    ->orWhere(function($q) use ($bufferStart, $bufferEnd) {
+                    ->orWhere(function ($q) use ($bufferStart, $bufferEnd) {
                         $q->where('tanggal_mulai', '<', $bufferStart)
-                        ->where('tanggal_selesai', '>', $bufferEnd);
+                            ->where('tanggal_selesai', '>', $bufferEnd);
                     });
             })
             ->exists();
@@ -215,25 +210,25 @@ class PemesananController extends Controller
         // Tambah buffer 2 jam
         $bufferStart = clone $tanggalMulai;
         $bufferStart->sub(new \DateInterval('PT2H'));
-        
+
         $bufferEnd = clone $tanggalSelesai;
         $bufferEnd->add(new \DateInterval('PT2H'));
 
         $isAvailable = !Pemesanan::where('id_gedung', $id)
             ->where('status', '!=', 'dibatalkan')
-            ->where(function($query) use ($bufferStart, $bufferEnd) {
+            ->where(function ($query) use ($bufferStart, $bufferEnd) {
                 $query->whereBetween('tanggal_mulai', [$bufferStart, $bufferEnd])
                     ->orWhereBetween('tanggal_selesai', [$bufferStart, $bufferEnd])
-                    ->orWhere(function($q) use ($bufferStart, $bufferEnd) {
+                    ->orWhere(function ($q) use ($bufferStart, $bufferEnd) {
                         $q->where('tanggal_mulai', '<', $bufferStart)
-                        ->where('tanggal_selesai', '>', $bufferEnd);
+                            ->where('tanggal_selesai', '>', $bufferEnd);
                     });
             })
             ->exists();
 
         return response()->json([
             'available' => $isAvailable,
-            'message' => $isAvailable 
+            'message' => $isAvailable
                 ? 'Gedung tersedia pada waktu tersebut'
                 : 'Gedung sudah dipesan pada waktu tersebut atau kurang dari 2 jam sebelum/sesudahnya'
         ]);

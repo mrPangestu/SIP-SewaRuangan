@@ -24,7 +24,7 @@ class Kernel extends ConsoleKernel
     }
 
     protected $commands = [
-        \App\Console\Commands\CleanExpiredBookings::class,
+        // \App\Console\Commands\CleanExpiredBookings::class,
     ];
 
     /**
@@ -38,5 +38,5 @@ class Kernel extends ConsoleKernel
 
         require base_path('routes/console.php');
     }
-    
+
 }

@@ -33,7 +33,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Auth Routes
 Route::middleware('auth')->group(function () {
-    
+
     // Pemesanan
     Route::post('/pemesanan', [PemesananController::class, 'store'])->name('pemesanan.store');
     Route::get('/pemesanan/{id_pemesanan}', [PemesananController::class, 'show'])->name('pemesanan.show');
@@ -50,11 +50,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/pembayaran/sukses/{id_pembayaran}', [PembayaranController::class, 'success'])->name('pembayaran.success');
     Route::post('/pembayaran/check-status/{id_pembayaran}', [PembayaranController::class, 'checkPaymentStatus'])->name('pembayaran.check-status');
     Route::get('/pembayaran/{id_pembayaran}/check-status', [PembayaranController::class, 'checkStatus'])->name('pembayaran.check-status');
-        
+
     Route::get('/invoice/{id_pembayaran}/download', [PembayaranController::class, 'downloadInvoice'])->name('invoice.download');
-    
+
     Route::patch('/pemesanan/{id_pemesanan}/batal', [PemesananController::class, 'batal'])->name('pemesanan.batal');
-    
+
     Route::get('/pemesanan', [PemesananController::class, 'index'])->name('pemesanan.index');
 });
 
@@ -64,21 +64,26 @@ Route::middleware('auth')->group(function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     // Dashboard
     Route::get('/', [AdminController::class, 'dashboard'])->name('dashboard');
-    
+    // Route untuk laporan
+    Route::get('/pemesanan/report', [AdminController::class, 'generateReport'])->name('pemesanan.report');
+
+    // Route untuk data filter (optional)
+    Route::get('/pemesanan/filter-data', [AdminController::class, 'getFilterData'])->name('pemesanan.filter.data');
+
     // Pemesanan
-    Route::prefix('pemesanan')->name('pemesanan.')->group(function() {
+    Route::prefix('pemesanan')->name('pemesanan.')->group(function () {
         Route::get('/', [AdminController::class, 'pemesananIndex'])->name('index');
         Route::get('/{id_pemesanan}', [AdminController::class, 'pemesananShow'])->name('show');
         Route::post('/{id_pemesanan}/confirm', [AdminController::class, 'pemesananConfirm'])->name('confirm');
-        
     });
 
     Route::get('/pemesanan', [AdminController::class, 'pemesananIndex'])->name('pemesanan.index');
     Route::get('/pemesanan/{id_pemesanan}', [AdminController::class, 'pemesananDetail'])->name('pemesanan.detail');
     Route::post('/pemesanan/{id_pemesanan}/complete', [AdminController::class, 'completeBooking'])->name('pemesanan.complete');
     Route::post('/pemesanan/{id_pemesanan}/send-reminder', [AdminController::class, 'sendDepositReminder'])->name('pemesanan.send-reminder');
-    
-  Route::prefix('kategori')->name('kategori.')->group(function() {
+
+
+    Route::prefix('kategori')->name('kategori.')->group(function () {
         Route::get('/', [AdminController::class, 'kategoriIndex'])->name('index');
         Route::post('/', [AdminController::class, 'kategoriStore'])->name('store');
         Route::put('/{id_kategori}', [AdminController::class, 'kategoriUpdate'])->name('update');
@@ -86,19 +91,17 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     });
 
     // Gedung
-    Route::prefix('gedung')->name('gedung.')->group(function() {
+    Route::prefix('gedung')->name('gedung.')->group(function () {
         Route::get('/', [AdminController::class, 'gedungIndex'])->name('index');
         Route::post('/', [AdminController::class, 'gedungStore'])->name('store');
         Route::put('/{id_gedung}', [AdminController::class, 'gedungUpdate'])->name('update');
         Route::delete('/{id_gedung}', [AdminController::class, 'gedungDestroy'])->name('destroy');
     });
     // user
-    Route::prefix('users')->name('users.')->group(function() {
+    Route::prefix('users')->name('users.')->group(function () {
         Route::get('/', [AdminController::class, 'userIndex'])->name('index');
         Route::get('/{id}', [AdminController::class, 'userShow'])->name('show');
         Route::delete('/{id}', [AdminController::class, 'userDestroy'])->name('destroy');
         Route::post('/{id}/toggle-status', [AdminController::class, 'userToggleStatus'])->name('toggle-status');
     });
-
-    
 });
