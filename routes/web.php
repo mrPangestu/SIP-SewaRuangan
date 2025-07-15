@@ -7,6 +7,8 @@ use App\Http\Controllers\PemesananController;
 use App\Http\Controllers\PembayaranController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\ReviewController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -56,6 +58,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/pemesanan/{id_pemesanan}/batal', [PemesananController::class, 'batal'])->name('pemesanan.batal');
 
     Route::get('/pemesanan', [PemesananController::class, 'index'])->name('pemesanan.index');
+
+    // Review
+    Route::post('/review', [ReviewController::class, 'store'])->name('review.store')->middleware('auth');
 });
 
 

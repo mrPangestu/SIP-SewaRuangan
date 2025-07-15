@@ -16,8 +16,16 @@ class Gedung extends Model
     protected $table = 'gedung';
 
     protected $fillable = [
-        'id_gedung', 'id_kategori', 'nama', 'lokasi', 'daerah',
-        'kapasitas', 'fasilitas', 'harga', 'deskripsi', 'image'
+        'id_gedung',
+        'id_kategori',
+        'nama',
+        'lokasi',
+        'daerah',
+        'kapasitas',
+        'fasilitas',
+        'harga',
+        'deskripsi',
+        'image'
     ];
 
     protected static function boot()
@@ -47,4 +55,10 @@ class Gedung extends Model
     {
         return $this->hasMany(Pemesanan::class, 'id_gedung', 'id_gedung');
     }
+
+    public function reviews()
+    {
+        return $this->hasMany(Review::class, 'id_gedung', 'id_gedung');
+    }
+
 }
